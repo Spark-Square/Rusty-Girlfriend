@@ -1,2 +1,5 @@
 /target
-/design.txt
+/frontend/dist
+
+/Dev_Notes
+.env

@@ -66,8 +66,14 @@ struct AIHordeStatusResponse {
 // ----------------- CHAT ENDPOINT -----------------
 #[post("/api/chat", format = "json", data = "<chat>")]
 async fn chat_endpoint(chat: Json<ChatRequest>) -> Json<ChatResponse> {
+    
+    // load environment variables and get api key
+    dotenvy::dotenv().ok();
+    let api_key = std::env::var("AI_HORDE_API_KEY")
+        .expect("AI_HORDE_API_KEY must be present in backend/.env");
+
+    
     let api_url = "https://stablehorde.net/api/v2/generate/text/async";
-    let api_key = "0000000000"; // replace with your key
     let client = Client::new();
 
     // Build payload
@@ -79,7 +85,7 @@ async fn chat_endpoint(chat: Json<ChatRequest>) -> Json<ChatResponse> {
     // ---- submit request ----
     let submit_send = client
         .post(api_url)
-        .header("apikey", api_key)
+        .header("apikey", api_key.clone())
         .header("Content-Type", "application/json")
         .json(&payload)
         .send()
@@ -148,7 +154,7 @@ async fn chat_endpoint(chat: Json<ChatRequest>) -> Json<ChatResponse> {
         // send poll request
         let poll_send = client
             .get(&poll_url)
-            .header("apikey", api_key)
+            .header("apikey", api_key.clone())
             .send()
             .await;
 
