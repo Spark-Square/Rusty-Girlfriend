@@ -47,7 +47,7 @@ pub fn app() -> Html {
                 // Send to backend API
                 let request_body = ChatRequest { message: msg.clone() };
 
-                let resp = Request::post("http://localhost:8000/api/chat")
+                let resp = Request::post("api/chat")
                     .header("Content-Type", "application/json")
                     .body(serde_json::to_string(&request_body).unwrap())
                     .send()
@@ -74,7 +74,7 @@ pub fn app() -> Html {
             <h1>{ "AI Girlfriend Chat" }</h1>
 
 
-            <div style="border: 2px solid #ccc; padding: 1rem; height: 700px; overflow-y: scroll;">
+            <div style="border: 2px solid #ccc; padding: 1rem; height:auto; min-height: 700px;  overflow-y: scroll;">
                 { for messages.iter().map(|m| html! { <p>{ m }</p> }) }
             </div>
 

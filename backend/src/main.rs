@@ -1,3 +1,4 @@
+// ----------------- Imports ----------------------------
 #[macro_use] extern crate rocket;
 
 use rocket::serde::{Serialize, Deserialize, json::Json};
@@ -6,9 +7,12 @@ use rocket::fairing::{Fairing, Info, Kind};
 use reqwest::Client;
 use std::time::Duration;
 use tokio::time::sleep;
+use rocket::fs::{FileServer, relative};
+
 
 // ----------------- DATA STRUCTS -----------------
-
+    
+//Custom request and response structs
 #[derive(Serialize, Deserialize)]
 struct ChatRequest {
     message: String,
@@ -64,6 +68,7 @@ struct AIHordeStatusResponse {
 }
 
 // ----------------- CHAT ENDPOINT -----------------
+
 #[post("/api/chat", format = "json", data = "<chat>")]
 async fn chat_endpoint(chat: Json<ChatRequest>) -> Json<ChatResponse> {
     
@@ -72,11 +77,9 @@ async fn chat_endpoint(chat: Json<ChatRequest>) -> Json<ChatResponse> {
     let api_key = std::env::var("AI_HORDE_API_KEY")
         .expect("AI_HORDE_API_KEY must be present in backend/.env");
 
-    
+    // Set https request contents in variables, and payload in json
     let api_url = "https://stablehorde.net/api/v2/generate/text/async";
     let client = Client::new();
-
-    // Build payload
     let payload = serde_json::json!({
         "prompt": chat.message,
         //"models": ["Erebus","Shinen","MythoMax13B"]
@@ -140,6 +143,7 @@ async fn chat_endpoint(chat: Json<ChatRequest>) -> Json<ChatResponse> {
     let poll_interval = Duration::from_secs(2);
     let max_attempts = 200;
 
+    // ------------------------------ DEBUG ------------------------------// 
     // We'll keep the last raw poll text to show on final failure
     //let mut last_poll_raw = String::new();
 
@@ -177,8 +181,9 @@ async fn chat_endpoint(chat: Json<ChatRequest>) -> Json<ChatResponse> {
             }
         };
 
-        // DEBUG: print full raw JSON for inspection
-        println!("Poll attempt {}: raw JSON:\n{}", attempt + 1, poll_text);
+        // ------------------------------ DEBUG ------------------------------// 
+        // print full raw JSON per poll for inspection 
+        //println!("Poll attempt {}: raw JSON:\n{}", attempt + 1, poll_text);
         // save last raw JSON
         //last_poll_raw = poll_text.clone();
 
@@ -191,9 +196,6 @@ async fn chat_endpoint(chat: Json<ChatRequest>) -> Json<ChatResponse> {
                 });
             }
         };
-
-
-
 
 
         // break if the done= true
@@ -218,45 +220,22 @@ async fn chat_endpoint(chat: Json<ChatRequest>) -> Json<ChatResponse> {
             });
         }
 
-
         // update submit_parsed.done/message so the loop condition can use it
         submit_parsed.done = parsed_status.done;
 
     }
-
+    // ------------------------------ DEBUG ------------------------------// 
     // At this point either done == true or we broke/returned early
     // DEBUG: print full raw JSON for inspection
     //println!("Last Poll raw JSON:\n{}", last_poll_raw);
     // fallback: no message even though done may be true
-    Json(ChatResponse { reply: "Error".to_string() })
-}
-
-// ----------------- OPTIONS HANDLER FOR CORS PRE-FLIGHT -----------------
-#[options("/api/chat")]
-fn chat_options() -> &'static str {
-    ""
-}
-
-// ----------------- MANUAL CORS FAIRING -----------------
-pub struct CORS;
-
-#[rocket::async_trait]
-impl Fairing for CORS {
-    fn info(&self) -> Info {
-        Info { name: "Add CORS headers", kind: Kind::Response }
-    }
-
-    async fn on_response<'r>(&self, _req: &'r Request<'_>, res: &mut Response<'r>) {
-        res.set_header(rocket::http::Header::new("Access-Control-Allow-Origin", "*"));
-        res.set_header(rocket::http::Header::new("Access-Control-Allow-Methods", "POST, GET, OPTIONS"));
-        res.set_header(rocket::http::Header::new("Access-Control-Allow-Headers", "Content-Type"));
-    }
+    Json(ChatResponse { reply: "Error: no prompt answer to respond with; Either our code failed or AIHorde did not respond".to_string() })
 }
 
 // ----------------- LAUNCH ROCKET -----------------
 #[launch]
 fn rocket() -> _ {
     rocket::build()
-        .mount("/", routes![chat_endpoint, chat_options])
-        .attach(CORS)
+        .mount("/", FileServer::from(relative!("../frontend/dist")))
+        .mount("/", routes![chat_endpoint])
 }
