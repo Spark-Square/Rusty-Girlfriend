@@ -1,0 +1,11 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Rusty Girlfriend",
+      "type": "f5anything",
+      "request": "launch",
+      "command": "\"${workspaceFolder}/Scripts/launch.sh\""
+    }
+  ]
+}

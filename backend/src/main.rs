@@ -2,8 +2,6 @@
 #[macro_use] extern crate rocket;
 
 use rocket::serde::{Serialize, Deserialize, json::Json};
-use rocket::{Request, Response};
-use rocket::fairing::{Fairing, Info, Kind};
 use reqwest::Client;
 use std::time::Duration;
 use tokio::time::sleep;
@@ -34,6 +32,7 @@ struct AIHordeSubmitResponse {
 
 
 // Async status response from AI Horde
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 struct Generation {
     text: Option<String>, // sometimes missing, so make it Option
@@ -45,6 +44,7 @@ struct Generation {
     state: Option<String>,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 struct GenMetadata {
     r#type: Option<String>,
@@ -52,6 +52,7 @@ struct GenMetadata {
     ref_: Option<String>, // if field is literally "ref" in JSON, need #[serde(rename="ref")]
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 struct AIHordeStatusResponse {
     generations: Option<Vec<Generation>>,

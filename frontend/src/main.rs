@@ -74,7 +74,7 @@ pub fn app() -> Html {
             <h1>{ "AI Girlfriend Chat" }</h1>
 
 
-            <div style="border: 2px solid #ccc; padding: 1rem; height:auto; min-height: 700px;  overflow-y: scroll;">
+            <div style="border: 2px solid #ccc; padding: 1rem; height: 700px;  overflow-y: scroll;">
                 { for messages.iter().map(|m| html! { <p>{ m }</p> }) }
             </div>
 
