@@ -75,7 +75,27 @@ pub fn app() -> Html {
 
 
             <div style="border: 2px solid #ccc; padding: 1rem; height: 700px;  overflow-y: scroll;">
-                { for messages.iter().map(|m| html! { <p>{ m }</p> }) }
+                { for messages.iter().map(|m| {
+                    let is_user = m.starts_with("You:");
+                    
+                    html! {
+                        <div style={format!(
+                            "display: flex; justify-content: {}; margin: 0.5rem;",
+                            
+                            if is_user { "flex-end" } else { "flex-start" }
+                            )
+                        }>
+                        
+                            <div style={format!(
+                                "background-color: {}; color: white; padding: 0.5rem 1rem; border-radius: 1rem; max-width: 70%;",
+                                if is_user { "#007bff" } else { "#444" }
+                            )}>
+                                { m }
+                            </div>
+                        
+                        </div>
+                    }
+                })}
             </div>
 
 
