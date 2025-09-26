@@ -44,7 +44,7 @@ pub fn app() -> Html {
 
     let onclick = {
         let input = input.clone();
-        let chat_history = chat_history.clone();
+        let chat_history_onclick: UseStateHandle<Vec<ChatMessage>> = chat_history.clone();
 
         
         //Callback from Send button
@@ -56,15 +56,15 @@ pub fn app() -> Html {
             }
 
             // Create a clone of chat history that includes the user message and set it immediately
-            let mut chat_history_with_user = (*chat_history).clone();
+            let mut chat_history_with_user = (*chat_history_onclick).clone();
             chat_history_with_user.push(ChatMessage { sender: Sender::User, text: msg.clone() });
-            chat_history.set(chat_history_with_user.clone());
+            chat_history_onclick.set(chat_history_with_user.clone());
             // clear the input of the user in the ui in the same time too
             input.set("".to_string());
 
 
 
-            let chat_history = chat_history.clone();
+            let chat_history_callback = chat_history_onclick.clone();
 
             // Thread to process the request to the backend
             wasm_bindgen_futures::spawn_local(async move {
@@ -85,7 +85,7 @@ pub fn app() -> Html {
 
                 // Add AI reply to chat_history_with_user and add it to chat_history 
                 chat_history_with_user.push(ChatMessage { sender: Sender::AI, text: resp_json.reply.clone() });
-                chat_history.set(chat_history_with_user);
+                chat_history_callback.set(chat_history_with_user);
             });
         })
     };
