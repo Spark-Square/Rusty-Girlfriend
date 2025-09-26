@@ -43,7 +43,7 @@ pub fn app() -> Html {
     };
 
     let onclick = {
-        let input = input.clone();
+        let input: UseStateHandle<String> = input.clone();
         let chat_history_onclick: UseStateHandle<Vec<ChatMessage>> = chat_history.clone();
 
         
@@ -90,39 +90,85 @@ pub fn app() -> Html {
     };
 
     html! {
-        <div>
-            <h1>{ "AI Girlfriend Chat" }</h1>
+        <div style="
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #1c023dff;
+            color: white;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        ">
+            <h3 style="margin: 1rem;">{ "Rikka: Wielder of the Wicked Eye" }</h3>
 
-
-            <div style="border: 2px solid #ccc; padding: 1rem; height: 700px;  overflow-y: scroll;">
+            // Chat container
+            <div style="
+                flex: 1;
+                background-color: #1c023dff;
+                margin: 0 1rem 1rem 1rem;
+                padding: 1rem;
+                border-radius: 8px;
+                overflow-y: auto;
+                box-sizing: border-box;
+            ">
                 { for chat_history.iter().map(|m| {
                     let is_user = m.sender == Sender::User;
-                    
                     html! {
                         <div style={format!(
-                            "display: flex; justify-content: {}; margin: 0.5rem;",
-                            
+                            "display: flex; justify-content: {}; margin: 0.5rem 0; align-items: flex-start;",
                             if is_user { "flex-end" } else { "flex-start" }
-                            )
-                        }>
-                        
+                        )}>
+                            // Avatar
+                            <div style={format! ("
+                                width: 40px;
+                                height: 40px;
+                                border-radius: 50%;
+                                background-color: {};
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                color: white;
+                                margin-right: 0.5rem;
+                                flex-shrink: 0;",
+                                if is_user { "#007bff" } else { "#AF69ED" }
+                            )}>
+                                { if is_user { "You" } else { "Ai" } }
+                            </div>
+
+                            // Chat bubble
                             <div style={format!(
                                 "background-color: {}; color: white; padding: 0.5rem 1rem; border-radius: 1rem; max-width: 70%;",
-                                if is_user { "#007bff" } else { "#444" }
+                                if is_user { "#007bff" } else { "#AF69ED" }
                             )}>
                                 { &m.text }
                             </div>
-                        
                         </div>
                     }
                 })}
             </div>
 
-
-            <input {oninput} type="text" value={(*input).clone()} placeholder="Type a message..." style="width: 80%;" />
-            <button onclick={onclick} style="width: 19%;">{ "Send" }</button>
-
-
+            // Input area pinned at bottom
+            <div style=
+                "display: flex;
+                gap: 0.25rem;
+                padding: 1rem 0rem; 
+                background-color: #1c023dff; 
+                box-sizing: border-box;">
+                <input
+                    {oninput}
+                    type="text"
+                    value={(*input).clone()}
+                    placeholder="Aa"
+                    style="flex: 1; padding: 0.5rem; border-radius: 0.5rem; border: none;"
+                />
+                <button
+                    onclick={onclick}
+                    style="padding: 0.5rem 1rem; border-radius: 0.5rem; background-color: #AF69ED; color: white; border: none;"
+                >
+                    { "Send" }
+                </button>
+            </div>
         </div>
     }
 }
