@@ -56,14 +56,10 @@ pub fn app() -> Html {
             }
 
             // Create a clone of chat history that includes the user message and set it immediately
-            chat_history_onclick.set(
-                {   let mut chat_history_with_user = (*chat_history_onclick).clone();
-                    chat_history_with_user.push(ChatMessage { sender: Sender::User, text: msg.clone() });
-                    chat_history_with_user
-                }
-            );
-            // clear the input of the user in the ui in the same time too
-            input.set("".to_string());
+            let mut chat_history_with_curr: Vec<ChatMessage> = (*chat_history_onclick).clone();
+            chat_history_with_curr.push(ChatMessage { sender: Sender::User, text: msg.clone() });
+            chat_history_onclick.set(chat_history_with_curr.clone());
+            input.set("".to_string());  // clear the input of the user in the ui in the same time too
 
 
 
@@ -87,13 +83,8 @@ pub fn app() -> Html {
                 let resp_json: ChatResponse = response.json().await.unwrap();
 
                 // Add AI reply to chat_history_with_user and add it to chat_history 
-                
-                chat_history_callback.set(
-                    {   let mut chat_history_with_ai = (*chat_history_callback).clone();
-                        chat_history_with_ai.push(ChatMessage { sender: Sender::AI, text: resp_json.reply.clone() });
-                        chat_history_with_ai
-                    }
-                );
+                chat_history_with_curr.push(ChatMessage { sender: Sender::AI, text: resp_json.reply.clone() });
+                chat_history_callback.set(chat_history_with_curr);
             });
         })
     };
