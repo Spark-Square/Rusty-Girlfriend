@@ -5,8 +5,8 @@ use rocket::serde::{Serialize, Deserialize, json::Json};
 use reqwest::Client;
 use std::time::Duration;
 use tokio::time::sleep;
-use rocket::fs::{FileServer, relative};
-
+use rocket::{fs::{FileServer, NamedFile}, get};
+use std::path::{Path, PathBuf};
 
 // ----------------- DATA STRUCTS -----------------
     
@@ -233,10 +233,28 @@ async fn chat_endpoint(chat: Json<ChatRequest>) -> Json<ChatResponse> {
     Json(ChatResponse { reply: "Error: no prompt answer to respond with; Either our code failed or AIHorde did not respond".to_string() })
 }
 
+// Do it this way, it avoids routing collisions that otherwise I don't know how to handle
+#[get("/Icons/<file>")]
+async fn icons(file: &str) -> Option<NamedFile> {
+    // "../Icons" points to the Icons folder outside the backend
+    NamedFile::open(Path::new("../Icons").join(file)).await.ok()
+}
+#[get("/<file>")]
+async fn app(file: &str) -> Option<NamedFile> {
+    // "../Icons" points to the Icons folder outside the backend
+    NamedFile::open(Path::new("../frontend/dist").join(file)).await.ok()
+}
+
+#[get("/")]
+async fn index() -> Option<NamedFile> {
+    NamedFile::open("../frontend/dist/index.html").await.ok()
+}
 // ----------------- LAUNCH ROCKET -----------------
 #[launch]
 fn rocket() -> _ {
     rocket::build()
-        .mount("/", FileServer::from(relative!("../frontend/dist")))
-        .mount("/", routes![chat_endpoint])
+    .mount("/", routes![app,
+                        index,
+                        icons,
+                        chat_endpoint])
 }

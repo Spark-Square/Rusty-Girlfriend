@@ -132,42 +132,30 @@ pub fn app() -> Html {
                                             { &m.text }
                                         </div>
 
-                                        // Avatar on the right
-                                        <div style="
+                                        // User avatar on the right
+                                        <img src="/Icons/Yuuta.jpg" 
+                                            alt="Me" 
+                                            style="
                                             width: 40px;
                                             height: 40px;
                                             border-radius: 50%;
-                                            background-color: #2E1B4C
-;
-                                            display: flex;
-                                            align-items: center;
-                                            justify-content: center;
-                                            color: white;
                                             margin-left: 0.5rem;
                                             flex-shrink: 0;
-                                        ">
-                                            { "🤵🏻" }
-                                        </div>
+                                        "/>
                                     </>
                                 }
                             } else {
                                 html! {
                                     <>
-                                        // Avatar on left
-                                        <div style="
-                                        width: 40px;
-                                        height: 40px;
-                                        border-radius: 50%;
-                                        background-color: white;
-                                        display: flex;
-                                        align-items: center;
-                                        justify-content: center;
-                                        color: white;
-                                        margin-right: 0.5rem;
-                                        flex-shrink: 0;
-                                        ">
-                                            { "👰🏻‍♀️" }
-                                        </div>
+                                        <img src="/Icons/Rikka.jpg" 
+                                            alt="Ai" 
+                                            style="
+                                            width: 40px;
+                                            height: 40px;
+                                            border-radius: 50%;
+                                            margin-right: 0.5rem;
+                                            flex-shrink: 0;
+                                        "/>
 
                                         // Chat bubble
                                         <div style={format!(
