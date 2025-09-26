@@ -105,7 +105,8 @@ pub fn app() -> Html {
             // Chat container
             <div style="
                 flex: 1;
-                background-color: #1c023dff;
+                background-color: #1c023dff
+;
                 margin: 0 1rem 1rem 1rem;
                 padding: 1rem;
                 border-radius: 8px;
@@ -119,54 +120,107 @@ pub fn app() -> Html {
                             "display: flex; justify-content: {}; margin: 0.5rem 0; align-items: flex-start;",
                             if is_user { "flex-end" } else { "flex-start" }
                         )}>
-                            // Avatar
-                            <div style={format! ("
-                                width: 40px;
-                                height: 40px;
-                                border-radius: 50%;
-                                background-color: {};
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                color: white;
-                                margin-right: 0.5rem;
-                                flex-shrink: 0;",
-                                if is_user { "#007bff" } else { "#AF69ED" }
-                            )}>
-                                { if is_user { "You" } else { "Ai" } }
-                            </div>
+                            // Render bubble first if user, avatar second
+                            { if is_user {
+                                html! {
+                                    <>
+                                        // Chat bubble
+                                        <div style={format!(
+                                        "background-color: {}; color: white; padding: 0.5rem 1rem; border-radius: 1rem; max-width: 70%;",
+                                        "#007bff"
+                                        )}>
+                                            { &m.text }
+                                        </div>
 
-                            // Chat bubble
-                            <div style={format!(
-                                "background-color: {}; color: white; padding: 0.5rem 1rem; border-radius: 1rem; max-width: 70%;",
-                                if is_user { "#007bff" } else { "#AF69ED" }
-                            )}>
-                                { &m.text }
-                            </div>
+                                        // Avatar on the right
+                                        <div style="
+                                            width: 40px;
+                                            height: 40px;
+                                            border-radius: 50%;
+                                            background-color: #2E1B4C
+;
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: center;
+                                            color: white;
+                                            margin-left: 0.5rem;
+                                            flex-shrink: 0;
+                                        ">
+                                            { "🤵🏻" }
+                                        </div>
+                                    </>
+                                }
+                            } else {
+                                html! {
+                                    <>
+                                        // Avatar on left
+                                        <div style="
+                                        width: 40px;
+                                        height: 40px;
+                                        border-radius: 50%;
+                                        background-color: white;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        color: white;
+                                        margin-right: 0.5rem;
+                                        flex-shrink: 0;
+                                        ">
+                                            { "👰🏻‍♀️" }
+                                        </div>
+
+                                        // Chat bubble
+                                        <div style={format!(
+                                            "background-color: {}; color: white; padding: 0.5rem 1rem; border-radius: 1rem; max-width: 70%;",
+                                            "#AF69ED"
+                                        )}>
+                                            { &m.text }
+                                        </div>
+                                    </>
+                                }
+                            }}
                         </div>
                     }
                 })}
             </div>
 
             // Input area pinned at bottom
-            <div style=
-                "display: flex;
-                gap: 0.25rem;
-                padding: 1rem 0rem; 
-                background-color: #1c023dff; 
-                box-sizing: border-box;">
+            <div style="
+                display: flex;
+                padding: 1rem;
+                background-color: #1c023dff;
+                gap: 0;
+                box-sizing: border-box;
+            ">
                 <input
                     {oninput}
                     type="text"
                     value={(*input).clone()}
                     placeholder="Aa"
-                    style="flex: 1; padding: 0.5rem; border-radius: 0.5rem; border: none;"
+                    style="
+                    flex: 1;
+                    padding: 0.5rem 1rem;
+                    border-radius: 1rem 0 0 1rem;  /* rounded left corners only */
+                    border: none;
+                    background-color: #2e1b4cff;
+                    color: white;
+                    outline: none;"
                 />
                 <button
                     onclick={onclick}
-                    style="padding: 0.5rem 1rem; border-radius: 0.5rem; background-color: #AF69ED; color: white; border: none;"
+                    style="
+                        padding: 0 1rem;
+                        border-radius: 0 1rem 1rem 0;  /* rounded right corners only */
+                        border: none;
+                        background-color: #AF69ED;
+                        color: white;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    "
                 >
-                    { "Send" }
+                    { "➤" }  // arrow icon inside button
                 </button>
             </div>
         </div>
