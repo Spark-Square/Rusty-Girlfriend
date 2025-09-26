@@ -5,8 +5,8 @@ use rocket::serde::{Serialize, Deserialize, json::Json};
 use reqwest::Client;
 use std::time::Duration;
 use tokio::time::sleep;
-use rocket::{fs::{FileServer, NamedFile}, get};
-use std::path::{Path, PathBuf};
+use rocket::{fs::NamedFile, get};
+use std::path::Path;
 
 // ----------------- DATA STRUCTS -----------------
     
