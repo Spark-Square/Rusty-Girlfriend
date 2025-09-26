@@ -15,12 +15,24 @@ struct ChatResponse {
     reply: String,
 }
 
+#[derive(Clone)]
+struct ChatMessage {
+    sender: Sender,
+    text: String,
+}
+
+#[derive(Clone, PartialEq)]
+enum Sender {
+    User,
+    AI,
+}
+
 // ------------------------------------------------
 
 #[function_component(App)]
 pub fn app() -> Html {
     let input = use_state(|| "".to_string());
-    let messages = use_state(|| vec![]);
+    let chat_history = use_state(|| vec![]);
 
     let oninput = {
         let input = input.clone();
@@ -32,39 +44,48 @@ pub fn app() -> Html {
 
     let onclick = {
         let input = input.clone();
-        let messages = messages.clone();
+        let chat_history = chat_history.clone();
+
+        
+        //Callback from Send button
         Callback::from(move |_| {
             let msg = (*input).clone();
+
             if msg.is_empty() {
                 return;
             }
 
-            let messages = messages.clone();
-            let input = input.clone();
+            // Create a clone of chat history that includes the user message and set it immediately
+            let mut chat_history_with_user = (*chat_history).clone();
+            chat_history_with_user.push(ChatMessage { sender: Sender::User, text: msg.clone() });
+            chat_history.set(chat_history_with_user.clone());
+            // clear the input of the user in the ui in the same time too
+            input.set("".to_string());
 
+
+
+            let chat_history = chat_history.clone();
+
+            // Thread to process the request to the backend
             wasm_bindgen_futures::spawn_local(async move {
 
                 // Send to backend API
                 let request_body = ChatRequest { message: msg.clone() };
 
-                let resp = Request::post("api/chat")
+                let request = Request::post("api/chat")
                     .header("Content-Type", "application/json")
                     .body(serde_json::to_string(&request_body).unwrap())
-                    .send()
+                    .send();
+
+                let response = request
                     .await
                     .unwrap();
 
-                let resp_json: ChatResponse = resp.json().await.unwrap();
+                let resp_json: ChatResponse = response.json().await.unwrap();
 
-                // Update chat messages
-                messages.set({
-                    let mut new_msgs = (*messages).clone();
-                    new_msgs.push(format!("You: {}", msg));
-                    new_msgs.push(format!("AI: {}", resp_json.reply));
-                    new_msgs
-                });
-
-                input.set("".to_string());
+                // Add AI reply to chat_history_with_user and add it to chat_history 
+                chat_history_with_user.push(ChatMessage { sender: Sender::AI, text: resp_json.reply.clone() });
+                chat_history.set(chat_history_with_user);
             });
         })
     };
@@ -75,8 +96,8 @@ pub fn app() -> Html {
 
 
             <div style="border: 2px solid #ccc; padding: 1rem; height: 700px;  overflow-y: scroll;">
-                { for messages.iter().map(|m| {
-                    let is_user = m.starts_with("You:");
+                { for chat_history.iter().map(|m| {
+                    let is_user = m.sender == Sender::User;
                     
                     html! {
                         <div style={format!(
@@ -90,7 +111,7 @@ pub fn app() -> Html {
                                 "background-color: {}; color: white; padding: 0.5rem 1rem; border-radius: 1rem; max-width: 70%;",
                                 if is_user { "#007bff" } else { "#444" }
                             )}>
-                                { m }
+                                { &m.text }
                             </div>
                         
                         </div>
