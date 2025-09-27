@@ -74,7 +74,7 @@ pub fn app() -> Html {
     let oninput = {
         let input = input.clone();
         Callback::from(move |e: InputEvent| {
-            let input_elem = e.target_dyn_into::<web_sys::HtmlInputElement>().unwrap();
+            let input_elem = e.target_dyn_into::<web_sys::HtmlTextAreaElement>().unwrap();
             input.set(input_elem.value());
         })
     };
@@ -134,10 +134,25 @@ pub fn app() -> Html {
         let input = input.clone();
         let chat_history_onkeypress = chat_history.clone();
         Callback::from(move |e: KeyboardEvent| {
-        if e.key() == "Enter" {
-            e.prevent_default();
-            send_message(&input, &chat_history_onkeypress);
-        }
+            if e.key() == "Enter" {
+                if e.shift_key() {  // Shift+Enter -> newline
+                    // insert a newline at the current cursor position
+                    if let Some(input_elem) = e.target_dyn_into::<web_sys::HtmlTextAreaElement>() {
+                        let cursor_pos = input_elem.selection_start()
+                                                          .unwrap()
+                                                          .unwrap();                     
+                        let mut new_value = (*input).clone();
+                        new_value.insert_str(cursor_pos as usize, "\n");
+                        input.set(new_value);
+                        // move cursor forward by 1
+                        input_elem.set_selection_start(Some(cursor_pos + 1)).ok();
+                        input_elem.set_selection_end(Some(cursor_pos + 1)).ok();
+                    }
+                } else {  // Enter -> send message
+                    e.prevent_default();
+                    send_message(&input, &chat_history_onkeypress); // reuse your send_message function
+                }
+            }
         })
     };
 
@@ -234,7 +249,7 @@ pub fn app() -> Html {
                 gap: 0;
                 box-sizing: border-box;
             ">
-                <input
+                <textarea
                     {oninput}
                     {onkeypress}
                     type="text"
@@ -247,7 +262,13 @@ pub fn app() -> Html {
                     border: none;
                     background-color: #2e1b4cff;
                     color: white;
-                    outline: none;"
+                    outline: none;
+                    resize:none;               /* prevent resizing */
+                    font-size:1rem;            /* adjust font size to match previous input */
+                    line-height:1.5rem;        /* adjust line height for spacing */
+                    min-height: 1rem;         /* make it thin by default */
+                    max-height:1.5rem;           /* prevent it from growing too tall */
+                    overflow-y:auto;           /* scroll if text exceeds max-height */"
                 />
                 <button
                     onclick={onclick}
