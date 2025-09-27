@@ -83,7 +83,7 @@ async fn chat_endpoint(chat: Json<ChatRequest>) -> Json<ChatResponse> {
     let client = Client::new();
     let payload = serde_json::json!({
         "prompt": chat.message,
-        //"models": ["Erebus","Shinen","MythoMax13B"]
+        //"models": ["Erebus","Shinen"]
     });
 
     // ---- submit request ----

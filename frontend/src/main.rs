@@ -1,6 +1,9 @@
 use yew::prelude::*;
 use gloo::net::http::Request;
 use serde::{Deserialize, Serialize};
+use wasm_bindgen::JsCast;
+use wasm_bindgen::JsValue;
+use js_sys::{Function, Object, Reflect};
 
 
 // ----------------- DATA STRUCTS -----------------
@@ -15,7 +18,7 @@ struct ChatResponse {
     reply: String,
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 struct ChatMessage {
     sender: Sender,
     text: String,
@@ -34,6 +37,40 @@ pub fn app() -> Html {
     let input = use_state(|| "".to_string());
     let chat_history = use_state(|| vec![]);
 
+    // NodeRef for chat container
+    let chat_container_ref = use_node_ref().clone();
+
+    // Auto-scroll when chat_history updates   
+    let chat_container_ref_clone = chat_container_ref.clone(); // make a clone for the closure
+        use_effect_with(
+        chat_history.clone(),
+        move |_| {
+            if let Some(div) = chat_container_ref_clone.cast::<web_sys::Element>() {
+                // build { top: <height>, behavior: "smooth" }
+                let opts = Object::new();
+                Reflect::set(&opts, &JsValue::from_str("top"), &JsValue::from_f64(div.scroll_height() as f64)).ok();
+                Reflect::set(&opts, &JsValue::from_str("behavior"), &JsValue::from_str("smooth")).ok();
+
+                // call element.scrollTo(opts) if available
+                let elem_js = JsValue::from(div.clone());
+                if let Ok(scroll_to) = Reflect::get(&elem_js, &JsValue::from_str("scrollTo")) {
+                    if let Some(func) = scroll_to.dyn_ref::<Function>() {
+                        let _ = func.call1(&elem_js, &opts.into());
+                    } else {
+                        // fallback: instant scroll
+                        div.set_scroll_top(div.scroll_height());
+                    }
+                } else {
+                    // fallback: instant scroll
+                    div.set_scroll_top(div.scroll_height());
+                }
+            }
+            || ()
+        },
+    );
+
+    
+
     let oninput = {
         let input = input.clone();
         Callback::from(move |e: InputEvent| {
@@ -42,13 +79,7 @@ pub fn app() -> Html {
         })
     };
 
-    let onclick = {
-        let input: UseStateHandle<String> = input.clone();
-        let chat_history_onclick: UseStateHandle<Vec<ChatMessage>> = chat_history.clone();
-
-        
-        //Callback from Send button
-        Callback::from(move |_| {
+    fn send_message (input: &UseStateHandle<String>, chat_history_onevent: &UseStateHandle<Vec<ChatMessage>>) {
             let msg = (*input).clone();
 
             if msg.is_empty() {
@@ -56,20 +87,20 @@ pub fn app() -> Html {
             }
 
             // Create a clone of chat history that includes the user message and set it immediately
-            let mut chat_history_with_curr: Vec<ChatMessage> = (*chat_history_onclick).clone();
-            chat_history_with_curr.push(ChatMessage { sender: Sender::User, text: msg.clone() });
-            chat_history_onclick.set(chat_history_with_curr.clone());
+            let mut chat_history_with_curr: Vec<ChatMessage> = (*chat_history_onevent).to_vec();
+            chat_history_with_curr.push(ChatMessage { sender: Sender::User, text: msg.to_string() });
+            chat_history_onevent.set(chat_history_with_curr.clone());
             input.set("".to_string());  // clear the input of the user in the ui in the same time too
 
 
 
-            let chat_history_callback = chat_history_onclick.clone();
+            let chat_history_callback = chat_history_onevent.clone();
 
             // Thread to process the request to the backend
             wasm_bindgen_futures::spawn_local(async move {
 
                 // Send to backend API
-                let request_body = ChatRequest { message: msg.clone() };
+                let request_body = ChatRequest { message: msg.to_string() };
 
                 let request = Request::post("api/chat")
                     .header("Content-Type", "application/json")
@@ -86,6 +117,27 @@ pub fn app() -> Html {
                 chat_history_with_curr.push(ChatMessage { sender: Sender::AI, text: resp_json.reply.clone() });
                 chat_history_callback.set(chat_history_with_curr);
             });
+    }
+    
+
+    let onclick = {
+        let input: UseStateHandle<String> = input.clone();
+        let chat_history_onclick: UseStateHandle<Vec<ChatMessage>> = chat_history.clone();
+        Callback::from(move |_: MouseEvent| {
+            send_message(&input, &chat_history_onclick);
+        })
+        
+    };
+
+        // Enter to send message
+    let onkeypress = {
+        let input = input.clone();
+        let chat_history_onkeypress = chat_history.clone();
+        Callback::from(move |e: KeyboardEvent| {
+        if e.key() == "Enter" {
+            e.prevent_default();
+            send_message(&input, &chat_history_onkeypress);
+        }
         })
     };
 
@@ -103,7 +155,9 @@ pub fn app() -> Html {
             <h3 style="margin: 1rem;">{ "Rikka: Wielder of the Wicked Eye" }</h3>
 
             // Chat container
-            <div style="
+            <div 
+                ref = {chat_container_ref} // attach NodeRef
+                style="
                 flex: 1;
                 background-color: #1c023dff
 ;
@@ -182,6 +236,7 @@ pub fn app() -> Html {
             ">
                 <input
                     {oninput}
+                    {onkeypress}
                     type="text"
                     value={(*input).clone()}
                     placeholder="Aa"
