@@ -1,0 +1,80 @@
+.main-div {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #1c023dff;
+  color: white;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.chat-container-div {
+  flex: 1;
+  margin: 1rem;
+  padding: 1rem;
+  border-radius: 8px;
+  background-color: #1c023d;
+  overflow-y: auto;
+}
+
+.message_and_icon_div {
+  padding: 0.5rem 1rem;
+  border-radius: 1rem;
+  margin: 0.5rem 0;
+  display: flex;
+  color: white;
+  align-items: flex-start;
+}
+
+.chat_bubble {
+  color: white; 
+  padding: 0.5rem 1rem; 
+  border-radius: 1rem; 
+  max-width: 70%;
+}
+
+.message_and_icon_div img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  /* margin-left: 0.5rem; */
+}
+
+.input-bar-area {
+  display: flex;
+  padding: 1rem;
+  background-color: #1c023dff;
+  gap: 0;
+  box-sizing: border-box;
+}
+
+.msg-input {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border-radius: 1rem 0 0 1rem;  /* rounded left corners only */
+  border: none;
+  background-color: #2e1b4cff;
+  color: white;
+  outline: none;
+  resize:none;               /* prevent resizing */
+  font-size:1rem;            /* adjust font size to match previous input */
+  line-height:1.5rem;        /* adjust line height for spacing */
+  min-height: 2.5rem;         /* make it thin by default */
+  max-height:1.5rem;           /* prevent it from growing too tall */
+  overflow-y:auto;           /* scroll if text exceeds max-height */
+}
+
+.send-button {
+  background-color: #AF69ED;
+  padding: 0 1rem;
+  border-radius: 0 1rem 1rem 0;  /* rounded right corners only */
+  border: none;
+  background-color: #AF69ED;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

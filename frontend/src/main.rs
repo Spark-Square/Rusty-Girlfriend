@@ -30,46 +30,11 @@ enum Sender {
     AI,
 }
 
-// ------------------------------------------------
-
+//--------------------------------------------------------------------------------------------------------------------------------
 #[function_component(App)]
 pub fn app() -> Html {
     let input = use_state(|| "".to_string());
     let chat_history = use_state(|| vec![]);
-
-    // NodeRef for chat container
-    let chat_container_ref = use_node_ref().clone();
-
-    // Auto-scroll when chat_history updates   
-    let chat_container_ref_clone = chat_container_ref.clone(); // make a clone for the closure
-        use_effect_with(
-        chat_history.clone(),
-        move |_| {
-            if let Some(div) = chat_container_ref_clone.cast::<web_sys::Element>() {
-                // build { top: <height>, behavior: "smooth" }
-                let opts = Object::new();
-                Reflect::set(&opts, &JsValue::from_str("top"), &JsValue::from_f64(div.scroll_height() as f64)).ok();
-                Reflect::set(&opts, &JsValue::from_str("behavior"), &JsValue::from_str("smooth")).ok();
-
-                // call element.scrollTo(opts) if available
-                let elem_js = JsValue::from(div.clone());
-                if let Ok(scroll_to) = Reflect::get(&elem_js, &JsValue::from_str("scrollTo")) {
-                    if let Some(func) = scroll_to.dyn_ref::<Function>() {
-                        let _ = func.call1(&elem_js, &opts.into());
-                    } else {
-                        // fallback: instant scroll
-                        div.set_scroll_top(div.scroll_height());
-                    }
-                } else {
-                    // fallback: instant scroll
-                    div.set_scroll_top(div.scroll_height());
-                }
-            }
-            || ()
-        },
-    );
-
-    
 
     let oninput = {
         let input = input.clone();
@@ -78,8 +43,42 @@ pub fn app() -> Html {
             input.set(input_elem.value());
         })
     };
-
-    fn send_message (input: &UseStateHandle<String>, chat_history_onevent: &UseStateHandle<Vec<ChatMessage>>) {
+    let onclick = {
+        let input: UseStateHandle<String> = input.clone();
+        let chat_history_onclick: UseStateHandle<Vec<ChatMessage>> = chat_history.clone();
+        Callback::from(move |_: MouseEvent| {
+            send_message(&input, &chat_history_onclick);
+        })
+        
+    };
+        // Enter to send message
+    let onkeypress = {
+        let input = input.clone();
+        let chat_history_onkeypress = chat_history.clone();
+        Callback::from(move |e: KeyboardEvent| {
+            if e.key() == "Enter" {
+                if e.shift_key() {  // Shift+Enter -> newline
+                    // insert a newline at the current cursor position
+                    if let Some(input_elem) = e.target_dyn_into::<web_sys::HtmlTextAreaElement>() {
+                        let cursor_pos = input_elem.selection_start()
+                                                          .unwrap()
+                                                          .unwrap();                     
+                        let mut new_value = (*input).clone();
+                        new_value.insert_str(cursor_pos as usize, "\n");
+                        input.set(new_value);
+                        // move cursor forward by 1
+                        input_elem.set_selection_start(Some(cursor_pos + 1)).ok();
+                        input_elem.set_selection_end(Some(cursor_pos + 1)).ok();
+                    }
+                } else {  // Enter -> send message
+                    e.prevent_default();
+                    send_message(&input, &chat_history_onkeypress); // reuse your send_message function
+                }
+            }
+        })
+    };
+//--------------------------------------------------------------------------------------------------------------------------------                        
+        fn send_message (input: &UseStateHandle<String>, chat_history_onevent: &UseStateHandle<Vec<ChatMessage>>) {
             let msg = (*input).clone();
 
             if msg.is_empty() {
@@ -117,176 +116,93 @@ pub fn app() -> Html {
                 chat_history_with_curr.push(ChatMessage { sender: Sender::AI, text: resp_json.reply.clone() });
                 chat_history_callback.set(chat_history_with_curr);
             });
-    }
-    
+        }
+//--------------------------------------------------------------------------------------------------------------------------------                        
+    // Auto-scroll when chat_history updates   
+    let chat_container_ref = use_node_ref().clone();    // NodeRef for chat container
 
-    let onclick = {
-        let input: UseStateHandle<String> = input.clone();
-        let chat_history_onclick: UseStateHandle<Vec<ChatMessage>> = chat_history.clone();
-        Callback::from(move |_: MouseEvent| {
-            send_message(&input, &chat_history_onclick);
-        })
-        
-    };
+    let chat_container_ref_clone = chat_container_ref.clone(); // make a clone for the closure
+        use_effect_with(
+            chat_history.clone(),
+            move |_| {
+                if let Some(div) = chat_container_ref_clone.cast::<web_sys::Element>() {
+                    // build { top: <height>, behavior: "smooth" }
+                    let opts = Object::new();
+                    Reflect::set(&opts, &JsValue::from_str("top"), &JsValue::from_f64(div.scroll_height() as f64)).ok();
+                    Reflect::set(&opts, &JsValue::from_str("behavior"), &JsValue::from_str("smooth")).ok();
 
-        // Enter to send message
-    let onkeypress = {
-        let input = input.clone();
-        let chat_history_onkeypress = chat_history.clone();
-        Callback::from(move |e: KeyboardEvent| {
-            if e.key() == "Enter" {
-                if e.shift_key() {  // Shift+Enter -> newline
-                    // insert a newline at the current cursor position
-                    if let Some(input_elem) = e.target_dyn_into::<web_sys::HtmlTextAreaElement>() {
-                        let cursor_pos = input_elem.selection_start()
-                                                          .unwrap()
-                                                          .unwrap();                     
-                        let mut new_value = (*input).clone();
-                        new_value.insert_str(cursor_pos as usize, "\n");
-                        input.set(new_value);
-                        // move cursor forward by 1
-                        input_elem.set_selection_start(Some(cursor_pos + 1)).ok();
-                        input_elem.set_selection_end(Some(cursor_pos + 1)).ok();
+                    // call element.scrollTo(opts) if available
+                    let elem_js = JsValue::from(div.clone());
+                    if let Ok(scroll_to) = Reflect::get(&elem_js, &JsValue::from_str("scrollTo")) {
+                        if let Some(func) = scroll_to.dyn_ref::<Function>() {
+                            let _ = func.call1(&elem_js, &opts.into());
+                        } else {
+                            // fallback: instant scroll
+                            div.set_scroll_top(div.scroll_height());
+                        }
+                    } else {
+                        // fallback: instant scroll
+                        div.set_scroll_top(div.scroll_height());
                     }
-                } else {  // Enter -> send message
-                    e.prevent_default();
-                    send_message(&input, &chat_history_onkeypress); // reuse your send_message function
                 }
-            }
-        })
-    };
-
+                || ()
+            },
+        );
+//--------------------------------------------------------------------------------------------------------------------------------                        
     html! {
-        <div style="
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            background-color: #1c023dff;
-            color: white;
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        ">
+        //Main div
+        <div class = "main-div">
             <h3 style="margin: 1rem;">{ "Rikka: Wielder of the Wicked Eye" }</h3>
-
-            // Chat container
-            <div 
-                ref = {chat_container_ref} // attach NodeRef
-                style="
-                flex: 1;
-                background-color: #1c023dff
-;
-                margin: 0 1rem 1rem 1rem;
-                padding: 1rem;
-                border-radius: 8px;
-                overflow-y: auto;
-                box-sizing: border-box;
-            ">
+//--------------------------------------------------------------------------------------------------------------------------------                        
+            // Chat container div
+            <div class= "chat-container-div" ref = {chat_container_ref} > // attach NodeRef
                 { for chat_history.iter().map(|m| {
                     let is_user = m.sender == Sender::User;
+//--------------------------------------------------------------------------------------------------------------------------------
+                    
                     html! {
-                        <div style={format!(
-                            "display: flex; justify-content: {}; margin: 0.5rem 0; align-items: flex-start;",
-                            if is_user { "flex-end" } else { "flex-start" }
-                        )}>
+                        //Message and icon div
+                        <div class={classes!("message_and_icon_div")} 
+                        style = {format!( "flex-direction: {};", if is_user {  "row-reverse" } else { "row" })}>
                             // Render bubble first if user, avatar second
-                            { if is_user {
+                            {
                                 html! {
                                     <>
+                                        // Avatar icon
+                                        {if is_user { html!(<img src="/Icons/Yuuta.jpg" alt= "Me"/>)}
+                                        else { html!{<img src="/Icons/Rikka.jpg" alt= "Ai"/>}}}
+                                        
                                         // Chat bubble
-                                        <div style={format!(
-                                        "background-color: {}; color: white; padding: 0.5rem 1rem; border-radius: 1rem; max-width: 70%;",
-                                        "#007bff"
-                                        )}>
-                                            { &m.text }
-                                        </div>
-
-                                        // User avatar on the right
-                                        <img src="/Icons/Yuuta.jpg" 
-                                            alt="Me" 
-                                            style="
-                                            width: 40px;
-                                            height: 40px;
-                                            border-radius: 50%;
-                                            margin-left: 0.5rem;
-                                            flex-shrink: 0;
-                                        "/>
-                                    </>
-                                }
-                            } else {
-                                html! {
-                                    <>
-                                        <img src="/Icons/Rikka.jpg" 
-                                            alt="Ai" 
-                                            style="
-                                            width: 40px;
-                                            height: 40px;
-                                            border-radius: 50%;
-                                            margin-right: 0.5rem;
-                                            flex-shrink: 0;
-                                        "/>
-
-                                        // Chat bubble
-                                        <div style={format!(
-                                            "background-color: {}; color: white; padding: 0.5rem 1rem; border-radius: 1rem; max-width: 70%;",
-                                            "#AF69ED"
+                                        <div class ="chat_bubble" 
+                                        style={format!("background-color: {}; ", if is_user {"#007bff; margin-right: 0.55rem"} 
+                                                                                 else {"#AF69ED; margin-left: 0.55rem"}
                                         )}>
                                             { &m.text }
                                         </div>
                                     </>
                                 }
-                            }}
+                            }
                         </div>
                     }
+//--------------------------------------------------------------------------------------------------------------------------------                        
                 })}
             </div>
-
+//--------------------------------------------------------------------------------------------------------------------------------                        
             // Input area pinned at bottom
-            <div style="
-                display: flex;
-                padding: 1rem;
-                background-color: #1c023dff;
-                gap: 0;
-                box-sizing: border-box;
-            ">
+            <div class = "input-bar-area">
                 <textarea
                     {oninput}
                     {onkeypress}
                     type="text"
                     value={(*input).clone()}
                     placeholder="Aa"
-                    style="
-                    flex: 1;
-                    padding: 0.5rem 1rem;
-                    border-radius: 1rem 0 0 1rem;  /* rounded left corners only */
-                    border: none;
-                    background-color: #2e1b4cff;
-                    color: white;
-                    outline: none;
-                    resize:none;               /* prevent resizing */
-                    font-size:1rem;            /* adjust font size to match previous input */
-                    line-height:1.5rem;        /* adjust line height for spacing */
-                    min-height: 1rem;         /* make it thin by default */
-                    max-height:1.5rem;           /* prevent it from growing too tall */
-                    overflow-y:auto;           /* scroll if text exceeds max-height */"
+                    class= "msg-input"
                 />
-                <button
-                    onclick={onclick}
-                    style="
-                        padding: 0 1rem;
-                        border-radius: 0 1rem 1rem 0;  /* rounded right corners only */
-                        border: none;
-                        background-color: #AF69ED;
-                        color: white;
-                        cursor: pointer;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                    "
-                >
+                <button onclick={onclick} class = "send-button">
                     { "➤" }  // arrow icon inside button
                 </button>
             </div>
+//--------------------------------------------------------------------------------------------------------------------------------                        
         </div>
     }
 }
