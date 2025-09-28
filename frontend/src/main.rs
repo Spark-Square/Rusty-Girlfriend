@@ -6,7 +6,8 @@ use wasm_bindgen::JsValue;
 use js_sys::{Function, Object, Reflect};
 
 
-// ----------------- DATA STRUCTS -----------------
+// DATA STRUCTS 
+//________________________________________________________________________________________________________________________________
 
 #[derive(Serialize, Deserialize)]
 struct ChatRequest {
@@ -30,7 +31,7 @@ enum Sender {
     AI,
 }
 
-//--------------------------------------------------------------------------------------------------------------------------------
+//________________________________________________________________________________________________________________________________
 #[function_component(App)]
 pub fn app() -> Html {
     let input = use_state(|| "".to_string());
@@ -77,7 +78,7 @@ pub fn app() -> Html {
             }
         })
     };
-//--------------------------------------------------------------------------------------------------------------------------------                        
+//________________________________________________________________________________________________________________________________                        
         fn send_message (input: &UseStateHandle<String>, chat_history_onevent: &UseStateHandle<Vec<ChatMessage>>) {
             let msg = (*input).clone();
 
@@ -116,8 +117,8 @@ pub fn app() -> Html {
                 chat_history_with_curr.push(ChatMessage { sender: Sender::AI, text: resp_json.reply.clone() });
                 chat_history_callback.set(chat_history_with_curr);
             });
-        }
-//--------------------------------------------------------------------------------------------------------------------------------                        
+        }                        
+//________________________________________________________________________________________________________________________________
     // Auto-scroll when chat_history updates   
     let chat_container_ref = use_node_ref().clone();    // NodeRef for chat container
 
@@ -148,23 +149,22 @@ pub fn app() -> Html {
                 || ()
             },
         );
-//--------------------------------------------------------------------------------------------------------------------------------                        
+//________________________________________________________________________________________________________________________________
     html! {
         //Main div
         <div class = "main-div">
-            <h3 style="margin: 1rem;">{ "Rikka: Wielder of the Wicked Eye" }</h3>
-//--------------------------------------------------------------------------------------------------------------------------------                        
+            <h3 style="font-family: 'Indie Flower', cursive; margin: 1rem;">{ "Rikka: Wielder of the Wicked Eye" }</h3>
+//________________________________________________________________________________________________________________________________
             // Chat container div
             <div class= "chat-container-div" ref = {chat_container_ref} > // attach NodeRef
                 { for chat_history.iter().map(|m| {
                     let is_user = m.sender == Sender::User;
-//--------------------------------------------------------------------------------------------------------------------------------
+//________________________________________________________________________________________________________________________________
                     
                     html! {
-                        //Message and icon div
-                        <div class={classes!("message_and_icon_div")} 
-                        style = {format!( "flex-direction: {};", if is_user {  "row-reverse" } else { "row" })}>
-                            // Render bubble first if user, avatar second
+                        // Chat row div, common stlying and unique styling
+                        <div class={classes!( "chat_row_div", {format!( "{}", if is_user {  "user_chat_row_div" } else { "ai_chat_row_div" })} )}>
+                            // Icon -> Message as default (AI), then reverse it for user
                             {
                                 html! {
                                     <>
@@ -173,10 +173,7 @@ pub fn app() -> Html {
                                         else { html!{<img src="/Icons/Rikka.jpg" alt= "Ai"/>}}}
                                         
                                         // Chat bubble
-                                        <div class ="chat_bubble" 
-                                        style={format!("background-color: {}; ", if is_user {"#007bff; margin-right: 0.55rem"} 
-                                                                                 else {"#AF69ED; margin-left: 0.55rem"}
-                                        )}>
+                                        <div class = { classes! ("chat_bubble", {format!( "{}", if is_user {"user_chat_bubble"} else {"ai_chat_bubble"})} )}>
                                             { &m.text }
                                         </div>
                                     </>
@@ -184,10 +181,10 @@ pub fn app() -> Html {
                             }
                         </div>
                     }
-//--------------------------------------------------------------------------------------------------------------------------------                        
+//________________________________________________________________________________________________________________________________                        
                 })}
             </div>
-//--------------------------------------------------------------------------------------------------------------------------------                        
+//________________________________________________________________________________________________________________________________
             // Input area pinned at bottom
             <div class = "input-bar-area">
                 <textarea
@@ -196,13 +193,13 @@ pub fn app() -> Html {
                     type="text"
                     value={(*input).clone()}
                     placeholder="Aa"
-                    class= "msg-input"
+                    class= "chat-input"
                 />
                 <button onclick={onclick} class = "send-button">
                     { "➤" }  // arrow icon inside button
                 </button>
             </div>
-//--------------------------------------------------------------------------------------------------------------------------------                        
+//________________________________________________________________________________________________________________________________                        
         </div>
     }
 }
