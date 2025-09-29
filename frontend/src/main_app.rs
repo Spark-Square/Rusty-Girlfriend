@@ -13,7 +13,7 @@ pub fn app() -> Html {
 	html! {
 		//Main div
 		<div class = "main-div">
-			<h3 style="font-family: 'Indie Flower', cursive; margin: 1rem;">{ "Rikka: Wielder of the Wicked Eye" }</h3>
+			<h3 style="font-family: 'Indie Flower', cursive; margin: 1rem;"> {"Rikka: Wielder of the Wicked Eye"} </h3>
 			<chat_container::ChatContainer chat_history={(*chat_history).clone()} />
             <input_bar::InputBar input= {input.clone()} chat_history= {chat_history.clone()} />           
 		</div>
