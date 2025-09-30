@@ -3,6 +3,8 @@ mod input_bar;
 mod http_req;
 
 use yew::prelude::*;
+use http_req::send_message;
+
 
 #[derive(Clone, PartialEq)]
 pub struct ChatMessage{
@@ -19,13 +21,22 @@ pub enum Sender {
 pub fn app() -> Html {
 	let input = use_state(|| "".to_string());
 	let chat_history = use_state(|| vec![]);
-                        
 
+	// send_message when ons_send is emitted
+	let on_send:Callback<()> = { 
+		let input_clone = input.clone();
+		let chat_history_clone = chat_history.clone();
+
+		Callback::from(move |_| {
+			send_message(&input_clone, &chat_history_clone);
+		})
+	};
+                        
 	html! {
 		<>
 			<h3 style="font-family: 'Indie Flower', cursive; margin: 1rem;"> {"Rikka: Wielder of the Wicked Eye"} </h3>
 			<chat_container::ChatContainer chat_history={(*chat_history).clone()} />
-            <input_bar::InputBar input= {input.clone()} chat_history= {chat_history.clone()} />           
+            <input_bar::InputBar {input} {on_send} />           
 		</>
 	}
 }
