@@ -1,8 +1,19 @@
-use yew::prelude::*;
-
 mod chat_container;
 mod input_bar;
 mod http_req;
+
+use yew::prelude::*;
+
+#[derive(Clone, PartialEq)]
+pub struct ChatMessage{
+        pub sender: Sender,
+        pub text: String,
+}
+#[derive(Clone,PartialEq)]
+pub enum Sender {
+        User,
+	AI,
+}
 
 #[function_component(App)]
 pub fn app() -> Html {
@@ -19,3 +30,4 @@ pub fn app() -> Html {
 		</div>
 	}
 }
+

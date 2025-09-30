@@ -2,15 +2,14 @@ use yew::prelude::*;
 use gloo::net::http::Request;
 use serde::{Deserialize, Serialize};
 
-use crate::chat_container::{ChatMessage, Sender};
-
+use crate::{ChatMessage, Sender};
 
 #[derive(Serialize, Deserialize)]
-struct ChatRequest {
+struct HttpRequest {
 	message: String,
 }
 #[derive(Serialize, Deserialize)]
-struct ChatResponse {
+struct HttpResponse {
 	reply: String,
 }
 
@@ -31,7 +30,7 @@ pub fn send_message (input: &UseStateHandle<String>, chat_history_onevent: &UseS
         // Thread to process the request to the backend
         wasm_bindgen_futures::spawn_local(async move {
         	// Send to backend API
-        	let request_body = ChatRequest { message: msg.to_string() };
+        	let request_body = HttpRequest { message: msg.to_string() };
         	let request = Request::post("api/chat")
         		.header("Content-Type", "application/json")
         		.body(serde_json::to_string(&request_body).unwrap())
@@ -39,7 +38,7 @@ pub fn send_message (input: &UseStateHandle<String>, chat_history_onevent: &UseS
         	let response = request
         		.await
         		.unwrap();
-        	let resp_json: ChatResponse = response.json().await.unwrap();
+        	let resp_json: HttpResponse = response.json().await.unwrap();
         	// Add AI reply to chat_history_with_user and add it to chat_history 
         	chat_history_with_curr.push(ChatMessage { sender: Sender::AI, text: resp_json.reply.clone() });
         	chat_history_callback.set(chat_history_with_curr);

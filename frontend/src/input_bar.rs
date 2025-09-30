@@ -1,6 +1,6 @@
 use yew::prelude::*;
 
-use crate::chat_container::ChatMessage;
+use crate::ChatMessage;
 use crate::http_req::send_message;
 
 #[derive(Properties, PartialEq)]
@@ -31,6 +31,7 @@ pub fn input_bar (props: &InputBarProperties) -> Html {
 	let onkeypress = {
 		let input = props.input.clone();
 		let chat_history_onkeypress = props.chat_history.clone();
+
 		Callback::from(move |e: KeyboardEvent| {
 			if e.key() == "Enter" {
 				if e.shift_key() {  // Shift+Enter -> newline
@@ -47,7 +48,7 @@ pub fn input_bar (props: &InputBarProperties) -> Html {
 					}
 				} else {  // Enter -> send message
 					e.prevent_default();
-					send_message(&input, &chat_history_onkeypress); // reuse your send_message function
+					send_message(&input, &chat_history_onkeypress); // reuse send_message function
 				}
 			}
 		})

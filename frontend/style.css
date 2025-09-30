@@ -1,8 +1,16 @@
+:root {
+  --bg: #1c023d;
+  --bg-input: #2e1b4c;
+  --bubble-user: #007bff;
+  --bubble-ai: #AF69ED;
+  --text-colour:white;
+}
+
 .main-div {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #1c023dff;
+  background-color: var(--bg);
   color: white;
   margin: 0;
   padding: 0;
@@ -13,7 +21,7 @@
   margin: 1rem;
   padding: 1rem;
   border-radius: 8px;
-  background-color: #1c023d;
+  background-color: var(--bg);
   overflow-y: auto;
 }
 .chat_row_div {
@@ -31,18 +39,18 @@
 but it can be created here without any refactoring */
 
 .chat_bubble {
-  color: white; 
+  color: var(--text-colour); 
   padding: 0.5rem 1rem; 
   border-radius: 1rem; 
   max-width: 70%;
 }
 .user_chat_bubble {
-    background-color: #007bff;
+    background-color: var(--bubble-user);
     font-family: 'Comfortaa', cursive;
 
 }
 .ai_chat_bubble{
-    background-color: #AF69ED;
+    background-color: var(--bubble-ai);
     font-family: 'Indie Flower', cursive;
 
 }
@@ -58,7 +66,7 @@ but it can be created here without any refactoring */
 .input-bar-area {
   display: flex;
   padding: 1rem;
-  background-color: #1c023dff;
+  background-color: var(--bg);
   gap: 0;
   box-sizing: border-box;
 }
@@ -68,7 +76,7 @@ but it can be created here without any refactoring */
   padding: 0.5rem 1rem;
   border-radius: 1rem 0 0 1rem;  /* rounded left corners only */
   border: none;
-  background-color: #2e1b4cff;
+  background-color: var(--bg-input);
   color: white;
   outline: none;
   resize:none;               /* prevent resizing */
@@ -82,12 +90,11 @@ but it can be created here without any refactoring */
 }
 
 .send-button {
-  background-color: #AF69ED;
+  background-color: var(--bubble-ai);
   padding: 0 1rem;
   border-radius: 0 1rem 1rem 0;  /* rounded right corners only */
   border: none;
-  background-color: #AF69ED;
-  color: white;
+  color: var(--text-colour);
   cursor: pointer;
   display: flex;
   align-items: center;

@@ -3,16 +3,8 @@ use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
 use js_sys::{Function, Object, Reflect};
 
-#[derive(Clone, PartialEq)]
-pub struct ChatMessage{
-        pub sender: Sender,
-        pub text: String,
-}
-#[derive(Clone,PartialEq)]
-pub enum Sender {
-        User,
-	AI,
-}
+use crate::{ChatMessage, Sender};
+
 #[derive(Properties, PartialEq)]
 pub struct ChatContainerProperties {
 	pub chat_history: Vec<ChatMessage>,
