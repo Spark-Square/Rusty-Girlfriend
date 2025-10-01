@@ -9,8 +9,8 @@ cd ..
 
 # Step 2: Start Rocket backend
 echo "🚀 Starting Rocket backend..."
-cd backend
-cargo run &
+cd backend 
+cargo run --release&
 PID=$!
 
 sleep 2
