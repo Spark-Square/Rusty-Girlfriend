@@ -3,6 +3,14 @@ use reqwest::Client;
 use std::time::Duration;
 use tokio::time::sleep;
 
+use crate::db_functions::{create_user, create_chat, add_message};
+use surrealdb::Surreal;
+use surrealdb::sql::Thing;
+use surrealdb::engine::remote::ws;
+use anyhow::Result;
+use surrealdb::opt::auth;
+
+
 // ----------------- DATA STRUCTS -----------------
     
 //Custom request and response structs
@@ -23,6 +31,16 @@ struct AIHordeSubmitResponse {
     done: Option<bool>,  //  make it optional
     message: Option<String>,
     kudos: Option<f64>,
+}
+
+
+async fn setup_mock_user_chat(db: &Surreal<surrealdb::engine::remote::ws::Client>) -> Result<(Thing, Thing)> {
+    // Create a mock user
+    let user_id = create_user(db, "alice", "Alice").await?;
+    // Create a chat for that user
+    let chat_id = create_chat(db, "Rikka Chat", user_id.clone()).await?;
+
+    Ok((user_id, chat_id))
 }
 
 
@@ -68,6 +86,29 @@ struct AIHordeStatusResponse {
 #[post("/api/chat", format = "json", data = "<chat>")]
 pub async fn chat_response(chat: Json<ChatRequest>) -> Json<ChatResponse> {
     
+let db = match Surreal::new::<ws::Ws>("127.0.0.1:8001").await {
+    Ok(db) => db,
+    Err(e) => {
+        eprintln!("DB connection failed: {:?}", e);
+        return Json(    // 1️⃣ Connect to SurrealDB
+            ChatResponse {
+                reply: "Internal error: cannot connect to database".to_string(),
+            });
+    }
+};    
+    
+    db.signin(auth::Root {
+        username: "root",
+        password: "root",
+    }).await.unwrap();
+    db.use_ns("test").use_db("chat_db").await.unwrap();
+
+    // 2️⃣ Setup mock user/chat (in real app, use logged-in user)
+    let (user_id, chat_id) = setup_mock_user_chat(&db).await.unwrap();
+
+    // 3️⃣ Add user message to DB
+    let _user_msg_id = add_message(&db, chat_id.clone(), user_id.clone(), &chat.message).await.unwrap();
+
     // load environment variables and get api key
     dotenvy::dotenv().ok();
     let api_key = std::env::var("AI_HORDE_API_KEY")
@@ -199,6 +240,10 @@ pub async fn chat_response(chat: Json<ChatRequest>) -> Json<ChatResponse> {
             if let Some(generations) = parsed_status.generations {
                 if let Some(first) = generations.first() {
                     if let Some(text) = &first.text {
+                        
+                        // reply in DB
+                        let _ai_msg_id = {
+                            add_message(&db, chat_id.clone(), Thing::from(("user","ai")), &text).await.unwrap()                        };
                         return Json(ChatResponse {
                             reply: text.clone(),
                         });
@@ -225,5 +270,6 @@ pub async fn chat_response(chat: Json<ChatRequest>) -> Json<ChatResponse> {
     // DEBUG: print full raw JSON for inspection
     //println!("Last Poll raw JSON:\n{}", last_poll_raw);
     // fallback: no message even though done may be true
+
     Json(ChatResponse { reply: "Error: no prompt answer to respond with; Either our code failed or AIHorde did not respond".to_string() })
 }
