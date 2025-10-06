@@ -3,13 +3,11 @@ use reqwest::Client;
 use std::time::Duration;
 use tokio::time::sleep;
 
-use crate::db_functions::{create_user, create_chat, add_message};
+use crate::db_functions::{add_message, create_chat, create_user, Sender};
 use surrealdb::Surreal;
-use surrealdb::sql::Thing;
 use surrealdb::engine::remote::ws;
-use anyhow::Result;
 use surrealdb::opt::auth;
-
+use surrealdb::RecordId;
 
 // ----------------- DATA STRUCTS -----------------
     
@@ -31,16 +29,6 @@ struct AIHordeSubmitResponse {
     done: Option<bool>,  //  make it optional
     message: Option<String>,
     kudos: Option<f64>,
-}
-
-
-async fn setup_mock_user_chat(db: &Surreal<surrealdb::engine::remote::ws::Client>) -> Result<(Thing, Thing)> {
-    // Create a mock user
-    let user_id = create_user(db, "alice", "Alice").await?;
-    // Create a chat for that user
-    let chat_id = create_chat(db, "Rikka Chat", user_id.clone()).await?;
-
-    Ok((user_id, chat_id))
 }
 
 
@@ -81,6 +69,12 @@ struct AIHordeStatusResponse {
     kudos: Option<f64>,
 }
 
+#[derive(Debug,Clone, Serialize, Deserialize)]
+pub struct Record {
+    #[allow(dead_code)]
+    pub  id: RecordId,
+}
+
 // ----------------- CHAT ENDPOINT -----------------
 
 #[post("/api/chat", format = "json", data = "<chat>")]
@@ -103,11 +97,23 @@ let db = match Surreal::new::<ws::Ws>("127.0.0.1:8001").await {
     }).await.unwrap();
     db.use_ns("test").use_db("chat_db").await.unwrap();
 
+
+async fn setup_mock_user_chat(db: &Surreal<surrealdb::engine::remote::ws::Client>) -> Record {
+    // Create a mock user
+    let user_record:Record = create_user(db, "alice", "Alice").await.unwrap();
+    // Create a chat for that user
+    let chat_record:Record= create_chat(db, "Rikka Chat", user_record.clone()).await.unwrap();
+
+    chat_record
+    
+}
+
+
     // 2️⃣ Setup mock user/chat (in real app, use logged-in user)
-    let (user_id, chat_id) = setup_mock_user_chat(&db).await.unwrap();
+    let chat_rec = setup_mock_user_chat(&db).await;
 
     // 3️⃣ Add user message to DB
-    let _user_msg_id = add_message(&db, chat_id.clone(), user_id.clone(), &chat.message).await.unwrap();
+    let _user_msg_id = add_message(&db, chat_rec.clone(), Sender::User, &chat.message).await.unwrap();
 
     // load environment variables and get api key
     dotenvy::dotenv().ok();
@@ -243,7 +249,7 @@ let db = match Surreal::new::<ws::Ws>("127.0.0.1:8001").await {
                         
                         // reply in DB
                         let _ai_msg_id = {
-                            add_message(&db, chat_id.clone(), Thing::from(("user","ai")), &text).await.unwrap()                        };
+                            add_message(&db, chat_rec.clone(), Sender::AI, &text).await.unwrap()                        };
                         return Json(ChatResponse {
                             reply: text.clone(),
                         });
