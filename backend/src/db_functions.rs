@@ -1,4 +1,4 @@
-use surrealdb::Surreal;
+use surrealdb::{RecordId, Surreal};
 use surrealdb::sql::Thing;
 use serde::{Deserialize, Serialize};
 use chrono::Utc;
@@ -14,7 +14,7 @@ pub struct User {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Chat {
     pub title: String,
-    pub owner: Record, // user:xxx
+    pub owner: RecordId, // user:xxx
     pub created_at: String,
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -24,7 +24,7 @@ pub enum  Sender {
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ChatMessage {
-    pub chat: Record,  // chat:xxx
+    pub chat: RecordId,  // chat:xxx
     pub sender: Sender,
     pub text: String,
     pub created_at: String,
@@ -42,7 +42,7 @@ pub async fn create_user(db: &Surreal<surrealdb::engine::remote::ws::Client>, us
     record
 }
 
-pub async fn create_chat(db: &Surreal<surrealdb::engine::remote::ws::Client>, title: &str, owner: Record) -> Option<Record> {
+pub async fn create_chat(db: &Surreal<surrealdb::engine::remote::ws::Client>, title: &str, owner: RecordId) -> Option<Record> {
     let chat = Chat {
         title: title.to_string(),
         owner,
@@ -52,7 +52,7 @@ pub async fn create_chat(db: &Surreal<surrealdb::engine::remote::ws::Client>, ti
     record
 }
 
-pub async fn add_message(db: &Surreal<surrealdb::engine::remote::ws::Client>, chat: Record, sender: Sender, text: &str) -> Option<Record> {
+pub async fn add_message(db: &Surreal<surrealdb::engine::remote::ws::Client>, chat: RecordId, sender: Sender, text: &str) -> Option<Record> {
     let msg = ChatMessage {
         chat,
         sender,

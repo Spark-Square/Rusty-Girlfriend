@@ -4,13 +4,13 @@ set -e
 # Step 1: Build frontend
 echo "🔨 Building Yew frontend with Trunk..."
 cd frontend
-trunk build --release
+trunk build 
 cd ..
 
 # Step 2: Start Rocket backend
 echo "🚀 Starting Rocket backend..."
 cd backend 
-cargo run --release&
+cargo run &
 PID=$!
 
 sleep 2

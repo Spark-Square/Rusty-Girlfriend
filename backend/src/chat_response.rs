@@ -102,7 +102,7 @@ async fn setup_mock_user_chat(db: &Surreal<surrealdb::engine::remote::ws::Client
     // Create a mock user
     let user_record:Record = create_user(db, "alice", "Alice").await.unwrap();
     // Create a chat for that user
-    let chat_record:Record= create_chat(db, "Rikka Chat", user_record.clone()).await.unwrap();
+    let chat_record:Record= create_chat(db, "Rikka Chat", user_record.id.clone()).await.unwrap();
 
     chat_record
     
@@ -113,7 +113,7 @@ async fn setup_mock_user_chat(db: &Surreal<surrealdb::engine::remote::ws::Client
     let chat_rec = setup_mock_user_chat(&db).await;
 
     // 3️⃣ Add user message to DB
-    let _user_msg_id = add_message(&db, chat_rec.clone(), Sender::User, &chat.message).await.unwrap();
+    let _user_msg_id = add_message(&db, chat_rec.id.clone(), Sender::User, &chat.message).await.unwrap();
 
     // load environment variables and get api key
     dotenvy::dotenv().ok();
@@ -249,7 +249,8 @@ async fn setup_mock_user_chat(db: &Surreal<surrealdb::engine::remote::ws::Client
                         
                         // reply in DB
                         let _ai_msg_id = {
-                            add_message(&db, chat_rec.clone(), Sender::AI, &text).await.unwrap()                        };
+                            add_message(&db, chat_rec.id.
+                                clone(), Sender::AI, &text).await.unwrap()                        };
                         return Json(ChatResponse {
                             reply: text.clone(),
                         });
