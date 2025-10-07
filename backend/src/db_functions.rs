@@ -1,8 +1,10 @@
-use surrealdb::{RecordId, Surreal};
-use surrealdb::sql::Thing;
-use serde::{Deserialize, Serialize};
+use surrealdb::{sql::Thing,
+    {RecordId,
+         Surreal}};
+use serde::{Deserialize,
+     Serialize};
 use chrono::Utc;
-use crate::chat_response::Record;
+use crate::types::Record;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct User {
