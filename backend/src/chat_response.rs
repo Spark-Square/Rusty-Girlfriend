@@ -10,14 +10,14 @@ use surrealdb::{Surreal,
 // Module imports
 use crate::db_functions::{add_message,
                           create_chat,
-                          create_user,
-                          Sender
+                          create_user
 };
 use crate::types::{ HttpRequest, 
                     HttpResponse,
                     AIHordeSubmitResponse,
                     AIHordeStatusResponse, 
-                    Record
+                    Record,
+                    Sender
 };
 
 // ----------------- CHAT ENDPOINT -----------------

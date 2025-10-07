@@ -65,3 +65,32 @@ pub struct Record {
     #[allow(dead_code)]
     pub  id: RecordId,
 }
+
+
+// Database function types 
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct User {
+    pub username: String,
+    pub name: String,
+    pub created_at: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Chat {
+    pub title: String,
+    pub owner: RecordId, // user:xxx
+    pub created_at: String,
+}
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub enum  Sender {
+    User, 
+    AI
+}
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ChatMessage {
+    pub chat: RecordId,  // chat:xxx
+    pub sender: Sender,
+    pub text: String,
+    pub created_at: String,
+}

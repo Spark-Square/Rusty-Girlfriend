@@ -1,37 +1,12 @@
 use surrealdb::{sql::Thing,
-    {RecordId,
-         Surreal}};
-use serde::{Deserialize,
-     Serialize};
+                {RecordId,
+                Surreal}};
 use chrono::Utc;
-use crate::types::Record;
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct User {
-    pub username: String,
-    pub name: String,
-    pub created_at: String,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Chat {
-    pub title: String,
-    pub owner: RecordId, // user:xxx
-    pub created_at: String,
-}
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub enum  Sender {
-    User, 
-    AI
-}
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct ChatMessage {
-    pub chat: RecordId,  // chat:xxx
-    pub sender: Sender,
-    pub text: String,
-    pub created_at: String,
-}
-
+use crate::types::{Record,
+                    User, 
+                    Chat,
+                    Sender, 
+                    ChatMessage};
 
 // ================== CREATE FUNCTIONS ==================
 pub async fn create_user(db: &Surreal<surrealdb::engine::remote::ws::Client>, username: &str, name: &str) -> Option<Record> {

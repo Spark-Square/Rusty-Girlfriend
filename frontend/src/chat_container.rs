@@ -3,7 +3,7 @@ use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
 use js_sys::{Function, Object, Reflect};
 
-use crate::{ChatMessage, Sender};
+use crate::types::{ChatMessage, Sender};
 
 #[derive(Properties, PartialEq)]
 pub struct ChatContainerProperties {
