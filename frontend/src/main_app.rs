@@ -6,6 +6,7 @@ mod input_bar;
 mod http_req;
 mod types;
 mod state_hooks;
+mod chat_menu;
 
 #[function_component(App)]
 pub fn app() -> Html {
@@ -20,9 +21,19 @@ pub fn app() -> Html {
 			send_message(&input_clone, &chat_history_clone);
 		})
 	};
+
+	let on_select_chat = {
+        Callback::from(move |chat: types::Chat| {
+            // here you can fetch messages for the selected chat
+            web_sys::console::log_1(&format!("Selected chat: {}", chat.title).into());
+        })
+    };
+
+    
                         
 	html! {
 		<>
+            <chat_menu::ChatMenu user_id={"user:alice".to_string()} on_select_chat={on_select_chat.clone()} />
 			<h3 style="font-family: 'Indie Flower', cursive; margin: 1rem;"> {"Rikka: Wielder of the Wicked Eye"} </h3>
 			<chat_container::ChatContainer {chat_history} />
             <input_bar::InputBar {input} {on_send} />           

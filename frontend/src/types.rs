@@ -4,11 +4,13 @@ pub struct ChatMessage{
         pub sender: Sender,
         pub text: String,
 }
-#[derive(Clone,PartialEq)]
+#[derive(Serialize, Deserialize, Debug,Clone,PartialEq)]
 pub enum Sender {
         User,
 	AI,
 }
+
+use std::fmt::DebugStruct;
 
 // For Http requests 
 use serde::{Serialize, Deserialize};
@@ -22,4 +24,27 @@ pub struct HttpRequest {
 #[allow(dead_code)]
 pub struct HttpResponse {
 	pub text: String,
+}
+
+
+// Database function types 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct User {
+    pub username: String,
+    pub name: String,
+    pub created_at: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Chat {
+    pub title: String,
+    pub owner: String, 
+    pub created_at: String,
+}
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct DBChatMessage {
+    pub chat: String,
+    pub sender: Sender,
+    pub text: String,
+    pub created_at: String,
 }

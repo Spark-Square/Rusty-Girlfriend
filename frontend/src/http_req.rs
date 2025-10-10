@@ -4,7 +4,8 @@ use crate::{state_hooks::{ChatHistory,
 						ChatAction}, 
 			types::{HttpRequest, 
 					HttpResponse, 
-					Sender}};
+					Sender,
+					Chat}};
 
 
 pub fn send_message (input: &UseStateHandle<String>, chat_history: &UseReducerHandle<ChatHistory>) {
@@ -46,4 +47,19 @@ pub fn send_message (input: &UseStateHandle<String>, chat_history: &UseReducerHa
         	});
         	
         });
+}
+
+pub async fn get_user_chats(user_id: &str) -> Result<Vec<Chat>, String> {
+    let url = format!("/api/chats?user_id={}", user_id); // your backend route
+    let response = Request::get(&url)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    if !response.ok() {
+        return Err(format!("Failed to fetch chats: {}", response.status()));
+    }
+
+    let chats: Vec<Chat> = response.json().await.map_err(|e| e.to_string())?;
+    Ok(chats)
 }
