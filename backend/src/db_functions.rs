@@ -15,7 +15,7 @@ pub async fn create_user(db: &Surreal<surrealdb::engine::remote::ws::Client>, us
         name: name.to_string(),
         created_at: Utc::now().to_rfc3339(),
     };
-    let record: Option<Record> = db.create("user").content(user).await.unwrap();
+    let record: Option<Record> = db.create(("user", username)).content(user).await.unwrap();
     record
 }
 
@@ -42,6 +42,7 @@ pub async fn add_message(db: &Surreal<surrealdb::engine::remote::ws::Client>, ch
 }
 
 // ================== FETCH FUNCTIONS ==================
+#[allow(dead_code)]
 pub async fn fetch_messages(db: &Surreal<surrealdb::engine::remote::ws::Client>, chat: Thing) -> Vec<ChatMessage> {
     let messages: Vec<ChatMessage> = db
         .query("SELECT * FROM message WHERE chat = $chat ORDER BY created_at ASC")
@@ -54,6 +55,7 @@ pub async fn fetch_messages(db: &Surreal<surrealdb::engine::remote::ws::Client>,
         messages
 }
 
+#[allow(dead_code)]
 pub async fn fetch_user_chats(db: &Surreal<surrealdb::engine::remote::ws::Client>, user: Thing) -> Vec<Chat> {
     let chats: Vec<Chat> = db
         .query("SELECT * FROM chat WHERE owner = $user ORDER BY created_at ASC")

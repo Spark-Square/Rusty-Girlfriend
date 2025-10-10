@@ -8,7 +8,8 @@ use crate::{state_hooks::{ChatHistory,
 
 
 pub fn send_message (input: &UseStateHandle<String>, chat_history: &UseReducerHandle<ChatHistory>) {
-        let msg = (*input).clone();
+        
+		let msg = input.clone();
 
         if msg.is_empty() {
         	return;

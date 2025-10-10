@@ -9,7 +9,7 @@ mod state_hooks;
 
 #[function_component(App)]
 pub fn app() -> Html {
-	let input = use_state(|| "".to_string());
+	let input = use_state(|| String::new());
  let chat_history = use_reducer(|| state_hooks::ChatHistory::default());
 	// send_message when ons_send is emitted
 	let on_send:Callback<()> = { 
