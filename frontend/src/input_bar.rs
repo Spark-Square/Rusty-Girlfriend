@@ -9,7 +9,7 @@ pub struct InputBarProperties{
 #[function_component(InputBar)]
 pub fn input_bar (props: &InputBarProperties) -> Html {
 
-        let oninput = {
+    let oninput = {
 		let input: UseStateHandle<String> = props.input.clone();
 		Callback::from(move |e: InputEvent| {
 			let input_elem = e.target_dyn_into::<web_sys::HtmlTextAreaElement>().unwrap();

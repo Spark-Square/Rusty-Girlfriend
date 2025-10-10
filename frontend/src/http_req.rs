@@ -1,24 +1,30 @@
 use yew::prelude::*;
 use gloo::net::http::Request;
-use crate::types::{ChatMessage,
-					Sender, 
-					HttpRequest,
-					HttpResponse};
+use crate::{state_hooks::{ChatHistory,
+						ChatAction}, 
+			types::{HttpRequest, 
+					HttpResponse, 
+					Sender}};
 
 
-pub fn send_message (input: &UseStateHandle<String>, chat_history_onevent: &UseStateHandle<Vec<ChatMessage>>) {
+pub fn send_message (input: &UseStateHandle<String>, chat_history: &UseReducerHandle<ChatHistory>) {
         let msg = (*input).clone();
 
         if msg.is_empty() {
         	return;
         }
 
-        // Create a clone of chat history that includes the user message and set it immediately
-        let mut chat_history_with_curr: Vec<ChatMessage> = (*chat_history_onevent).to_vec();
-        chat_history_with_curr.push(ChatMessage { sender: Sender::User, text: msg.to_string() });
-        chat_history_onevent.set(chat_history_with_curr.clone());
-        input.set("".to_string());  // clear the input of the user in the ui in the same time too
-        let chat_history_callback = chat_history_onevent.clone();
+        // Immediately add the user message via reducer
+    	chat_history.dispatch(ChatAction::AddMessage {
+        		sender: Sender::User,
+        		text: msg.to_string(),
+    	});
+    	// clear input
+    	input.set(String::new());
+
+
+    	// Move clones into the async task
+    	let chat_history_for_async = chat_history.clone();
         
         // Thread to process the request to the backend
         wasm_bindgen_futures::spawn_local(async move {
@@ -32,8 +38,11 @@ pub fn send_message (input: &UseStateHandle<String>, chat_history_onevent: &UseS
         		.await
         		.unwrap();
         	let resp_json: HttpResponse = response.json().await.unwrap();
-        	// Add AI reply to chat_history_with_user and add it to chat_history 
-        	chat_history_with_curr.push(ChatMessage { sender: Sender::AI, text: resp_json.text.clone() });
-        	chat_history_callback.set(chat_history_with_curr);
+			
+			chat_history_for_async.dispatch(ChatAction::AddMessage {
+            	sender: Sender::AI,
+            	text: resp_json.text,
+        	});
+        	
         });
 }

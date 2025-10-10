@@ -3,11 +3,12 @@ use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
 use js_sys::{Function, Object, Reflect};
 
-use crate::types::{ChatMessage, Sender};
+use crate::state_hooks;
+use crate::types::{Sender};
 
 #[derive(Properties, PartialEq)]
 pub struct ChatContainerProperties {
-	pub chat_history: Vec<ChatMessage>,
+	pub chat_history: UseReducerHandle<state_hooks::ChatHistory>,
 }
 
 #[function_component(ChatContainer)]
@@ -48,7 +49,7 @@ pub fn chat_container (props: &ChatContainerProperties) -> Html {
 	html!{
 	        // Chat container div
             	<div class= "chat-container-div" ref = {chat_container_ref}> // attach NodeRef
-                	{ for props.chat_history.iter().map(|m| {
+                	{ for props.chat_history.messages.iter().map(|m| {
                     		let is_user = m.sender == Sender::User;
 				
 				html! {

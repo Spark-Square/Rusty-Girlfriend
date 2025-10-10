@@ -5,12 +5,12 @@ mod chat_container;
 mod input_bar;
 mod http_req;
 mod types;
+mod state_hooks;
 
 #[function_component(App)]
 pub fn app() -> Html {
 	let input = use_state(|| "".to_string());
-	let chat_history = use_state(|| vec![]);
-
+ let chat_history = use_reducer(|| state_hooks::ChatHistory::default());
 	// send_message when ons_send is emitted
 	let on_send:Callback<()> = { 
 		let input_clone = input.clone();
@@ -24,7 +24,7 @@ pub fn app() -> Html {
 	html! {
 		<>
 			<h3 style="font-family: 'Indie Flower', cursive; margin: 1rem;"> {"Rikka: Wielder of the Wicked Eye"} </h3>
-			<chat_container::ChatContainer chat_history={(*chat_history).clone()} />
+			<chat_container::ChatContainer {chat_history} />
             <input_bar::InputBar {input} {on_send} />           
 		</>
 	}
