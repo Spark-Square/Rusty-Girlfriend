@@ -33,8 +33,27 @@ pub fn app() -> Html {
                         
 	html! {
 		<>
-            <chat_menu::ChatMenu user_id={"user:alice".to_string()} on_select_chat={on_select_chat.clone()} />
-			<h3 style="font-family: 'Indie Flower', cursive; margin: 1rem;"> {"Rikka: Wielder of the Wicked Eye"} </h3>
+
+		 // Header bar wrapper
+        	<div
+        	    style="
+        	        display: flex;
+        	        align-items: center;
+        	        gap: 2px;
+        	        background: #5D2BAA;
+        	        padding: 0.75rem 0.5rem;
+        	        position: sticky;
+        	        top: 0;
+        	        z-index: 1200;
+        	    "
+        	>
+        	    <chat_menu::ChatMenu user_id={"user:alice".to_string()} on_select_chat={on_select_chat.clone()} />
+        	    <h3 style="font-family: 'Indie Flower', cursive; color: #eee;  margin: 0;">
+        	        {"Rikka: Wielder of the Wicked Eye"}
+        	    </h3>
+			</div>
+
+			 // 💬 Main content
 			<chat_container::ChatContainer {chat_history} />
             <input_bar::InputBar {input} {on_send} />           
 		</>

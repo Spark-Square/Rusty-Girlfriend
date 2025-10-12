@@ -10,8 +10,6 @@ pub enum Sender {
 	AI,
 }
 
-use std::fmt::DebugStruct;
-
 // For Http requests 
 use serde::{Serialize, Deserialize};
 
@@ -26,8 +24,8 @@ pub struct HttpResponse {
 	pub text: String,
 }
 
-
-// Database function types 
+// Database function types
+#[allow(dead_code)]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct User {
     pub username: String,
@@ -41,6 +39,8 @@ pub struct Chat {
     pub owner: String, 
     pub created_at: String,
 }
+
+#[allow(dead_code)]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct DBChatMessage {
     pub chat: String,

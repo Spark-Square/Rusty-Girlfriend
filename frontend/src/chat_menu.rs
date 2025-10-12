@@ -52,36 +52,33 @@ pub fn chat_menu(props: &ChatMenuProps) -> Html {
             <button
                 onclick={toggle}
                 style="
-                    position: absolute;
-                    top: 1rem;
-                    left: 1rem;
-                    background-color: #2b2b2b;
+                    background-color: #5D2BAA;
                     color: white;
-                    border: none;
+                    border: white;
                     border-radius: 8px;
-                    padding: 0.5rem 0.9rem;
+                    height: 2.5rem;
+                    padding: 0rem 0.9rem;
                     cursor: pointer;
-                    z-index: 1100;
                 "
             >
-                {"☰ Chats"}
+                {"☰"}
             </button>
 
             { if *open {
                 html! {
                     <div
                         style="
-                            position: fixed;
-                            top: 3.6rem;
-                            left: 0;
+                            position: absolute;
+                            top: 100% ;
+                            margin-bottom: 1rem;
                             width: 260px;
                             max-height: 80vh;
                             overflow-y: auto;
-                            background: #111;
+                            background: #AF69ED;
                             color: #eee;
                             padding: 0.5rem;
-                            box-shadow: 0 6px 18px rgba(0,0,0,0.5);
-                            border-top-right-radius: 12px;
+                            box-shadow: 0 6px 18px rgba(209, 61, 254, 0.5);
+                            border-radius: 12px;
                             z-index: 1050;
                         "
                     >
