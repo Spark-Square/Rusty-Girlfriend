@@ -45,12 +45,16 @@ let db = match Surreal::new::<ws::Ws>("127.0.0.1:8001").await {
 
 async fn setup_mock_user_chat(db: &Surreal<surrealdb::engine::remote::ws::Client>) -> Record {
     // Create a mock user
-    let user_record:Record = create_user(db, "alice", "Alice").await.unwrap();
+    let user_record = match db.select(("user", "alice")).await {
+        Ok(Some(user)) => user,
+        Ok(None) => create_user(db, "alice", "Alice").await.unwrap(),
+        Err(_) => panic!("rip"),
+   };
+
     // Create a chat for that user
     let chat_record:Record= create_chat(db, "Rikka Chat", user_record.id.clone()).await.unwrap();
 
-    chat_record
-    
+    chat_record 
 }
 
 

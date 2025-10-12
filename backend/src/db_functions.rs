@@ -25,8 +25,14 @@ pub async fn create_chat(db: &Surreal<surrealdb::engine::remote::ws::Client>, ti
         owner,
         created_at: Utc::now().to_rfc3339(),
     };
-    let record: Option<Record> = db.create("chat").content(chat).await.unwrap();
-    record
+
+    match  db.create("chat").content(chat).await {
+       Ok(id) => id,
+       Err(e) => {
+            eprintln!("Failed to create user: {:?}", e);
+            None
+       },
+    }
 }
 
 pub async fn add_message(db: &Surreal<surrealdb::engine::remote::ws::Client>, chat: RecordId, sender: Sender, text: &str) -> Option<Record> {
