@@ -100,3 +100,37 @@ but it can be created here without any refactoring */
   align-items: center;
   justify-content: center;
 }
+
+.chat-menu-button {
+  background-color: #5D2BAA;
+  color: white;
+  border: white;
+  border-radius: 8px;
+  height: 2.5rem;
+  padding: 0rem 0.9rem;
+  cursor: pointer;
+}
+
+.chats-div {
+  position: absolute;
+  top: 100% ;
+  margin-bottom: 1rem;
+  width: 260px;
+  max-height: 80vh;
+  overflow-y: auto;
+  background: #AF69ED;
+  color: #eee;
+  padding: 0.5rem;
+  box-shadow: 0 6px 18px rgba(209, 61, 254, 0.5);
+  border-radius: 12px;
+  z-index: 1050;
+}
+
+.chat-title-menu {
+  padding: 0.55rem 0.6rem;
+  cursor: pointer;
+  border-radius: 6px;
+  margin-bottom: 0.15rem;
+  transition: background 0.12s ease;
+  user-select: none;
+}
