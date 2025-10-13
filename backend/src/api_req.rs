@@ -23,7 +23,7 @@ use crate::types::{ HttpRequest,
 // ----------------- CHAT ENDPOINT -----------------
 
 #[post("/api/chat", format = "json", data = "<chat>")]
-pub async fn chat_response(chat: Json<HttpRequest>) -> Json<HttpResponse> {
+pub async fn api_req(chat: Json<HttpRequest>) -> Json<HttpResponse> {
     
 let db = match Surreal::new::<ws::Ws>("127.0.0.1:8001").await {
     Ok(db) => db,
