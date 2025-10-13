@@ -33,20 +33,8 @@ pub fn app() -> Html {
                         
 	html! {
 		<>
-
-		 // Header bar wrapper
-        	<div
-        	    style="
-        	        display: flex;
-        	        align-items: center;
-        	        gap: 2px;
-        	        background: #5D2BAA;
-        	        padding: 0.75rem 0.5rem;
-        	        position: sticky;
-        	        top: 0;
-        	        z-index: 1200;
-        	    "
-        	>
+		 	// Header bar wrapper
+        	<div class= "header-div">
         	    <chat_menu::ChatMenu user_id={"user:alice".to_string()} on_select_chat={on_select_chat.clone()} />
         	    <h3 style="font-family: 'Indie Flower', cursive; color: #eee;  margin: 0;">
         	        {"Rikka: Wielder of the Wicked Eye"}
