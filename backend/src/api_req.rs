@@ -3,12 +3,11 @@ use rocket::serde::json::Json;
 use reqwest::Client;
 use std::time::Duration;
 use tokio::time::sleep;
-use surrealdb::{Surreal,
-                engine::remote::ws,
-                opt::auth};
+use surrealdb::Surreal;
 
 // Module imports
-use crate::db_functions::{add_message,
+use crate::db_functions::{Database, 
+                          add_message,
                           create_chat,
                           create_user
 };
@@ -24,23 +23,9 @@ use crate::types::{ HttpRequest,
 
 #[post("/api/chat", format = "json", data = "<chat>")]
 pub async fn api_req(chat: Json<HttpRequest>) -> Json<HttpResponse> {
-    
-let db = match Surreal::new::<ws::Ws>("127.0.0.1:8001").await {
-    Ok(db) => db,
-    Err(e) => {
-        eprintln!("DB connection failed: {:?}", e);
-        return Json(    // 1️⃣ Connect to SurrealDB
-        HttpResponse {
-            text: "Internal error: cannot connect to database".to_string(),
-            });
-    }
-};    
-    
-    db.signin(auth::Root {
-        username: "root",
-        password: "root",
-    }).await.unwrap();
-    db.use_ns("test").use_db("chat_db").await.unwrap();
+
+    // 1️⃣ Connect to SurrealDB
+    let db =    Database::init("127.0.0.1:8001", "root", "root", "test", "chat_db").await;
 
 
 async fn setup_mock_user_chat(db: &Surreal<surrealdb::engine::remote::ws::Client>) -> Record {
@@ -59,10 +44,10 @@ async fn setup_mock_user_chat(db: &Surreal<surrealdb::engine::remote::ws::Client
 
 
     // 2️⃣ Setup mock user/chat (in real app, use logged-in user)
-    let chat_rec = setup_mock_user_chat(&db).await;
+    let chat_rec = setup_mock_user_chat(&db.client).await;
 
     // 3️⃣ Add user message to DB
-    let _user_msg_id = add_message(&db, chat_rec.id.clone(), Sender::User, &chat.text).await.unwrap();
+    let _user_msg_id = add_message(&db.client, chat_rec.id.clone(), Sender::User, &chat.text).await.unwrap();
 
     // load environment variables and get api key
     dotenvy::dotenv().ok();
@@ -198,7 +183,7 @@ async fn setup_mock_user_chat(db: &Surreal<surrealdb::engine::remote::ws::Client
                         
                         // reply in DB
                         let _ai_msg_id = {
-                            add_message(&db, chat_rec.id.
+                            add_message(&db.client, chat_rec.id.
                                 clone(), Sender::AI, &text).await.unwrap()                        };
                         return Json(HttpResponse {
                             text: text.clone(),

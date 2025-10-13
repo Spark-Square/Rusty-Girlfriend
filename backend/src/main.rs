@@ -3,6 +3,7 @@ mod api_req;
 mod serve_frontend;
 mod db_functions;
 mod types;
+mod db_req;
 
 
 // Do it            this ---------- way,  it avoids routing collisions that otherwise I don't know how to handle

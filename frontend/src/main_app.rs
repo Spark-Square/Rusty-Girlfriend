@@ -24,7 +24,7 @@ pub fn app() -> Html {
 
 	let on_select_chat = {
         Callback::from(move |chat: types::Chat| {
-            // here you can fetch messages for the selected chat
+        	// here you can fetch messages for the selected chat
             web_sys::console::log_1(&format!("Selected chat: {}", chat.title).into());
         })
     };
