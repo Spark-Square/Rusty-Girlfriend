@@ -50,7 +50,7 @@ pub fn send_message (input: &UseStateHandle<String>, chat_history: &UseReducerHa
 }
 
 pub async fn get_user_chats(user_id: &str) -> Result<Vec<Chat>, String> {
-    let url = format!("/api/chats?user_id={}", user_id); // your backend route
+    let url = format!("/db/chats?user_id={}", user_id);
     let response = Request::get(&url)
         .send()
         .await

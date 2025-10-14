@@ -33,7 +33,8 @@ pub struct User {
     pub created_at: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Chat {
     pub title: String,
     pub owner: String, 
