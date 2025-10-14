@@ -1,7 +1,9 @@
 use surrealdb::{Surreal,
                 engine::remote::ws::{Ws,Client},
                 opt::auth,
-                sql::Thing,RecordId};
+                sql::Thing,RecordId,
+                Error,
+                error::Db};
 use chrono::Utc;
 use crate::types::{Record,
                     User, 
@@ -57,82 +59,72 @@ impl Database {
 }
 
 // ================== CREATE FUNCTIONS ==================
-pub async fn create_user(db: &Surreal<Client>, username: &str, name: &str) -> Option<Record> {
+pub async fn create_user(db: &Surreal<Client>, username: &str, name: &str) -> surrealdb::Result<Record> {
     let user = User {
         username: username.to_string(),
         name: name.to_string(),
         created_at: Utc::now().to_rfc3339(),
     };
-    let record: Option<Record> = db.create(("user", username)).content(user).await.unwrap();
-    record
+    db.create(("user", username)).content(user)
+        .await?
+        .ok_or_else(|| Error::Db(Db::Thrown("Expected a record but got None".to_string())))
 }
 
-pub async fn ensure_user(
-    db: &Surreal<Client>,
-    username: &str,
-    name: &str,
-) -> Option<Record> {
+pub async fn ensure_user(db: &Surreal<Client>,username: &str, name: &str,) -> surrealdb::Result<Record> {
     // Try to select the record by its ID
-    if let Ok(Some(existing)) = db.select(("user", username)).await {
-        return existing;
+    if let Some(existing) = db.select(("user", username)).await? {
+        return Ok(existing);
     }
-
     // If not found, create it
     create_user(db, username, name).await
 }
 
-pub async fn create_chat(db: &Surreal<Client>, title: &str, owner: RecordId) -> Option<Record> {
+pub async fn create_chat(db: &Surreal<Client>, title: &str, owner: RecordId) -> surrealdb::Result<Record> {
     let chat = Chat {
         title: title.to_string(),
         owner,
         created_at: Utc::now().to_rfc3339(),
     };
 
-    match  db.create("chat").content(chat).await {
-       Ok(id) => id,
-       Err(e) => {
-            eprintln!("Failed to create user: {:?}", e);
-            None
-       },
-    }
+    db.create("chat").content(chat)
+        .await?
+        .ok_or_else(|| Error::Db(Db::Thrown("Expected a record but got None".to_string())))
 }
 
-pub async fn add_message(db: &Surreal<Client>, chat: RecordId, sender: Sender, text: &str) -> Option<Record> {
+pub async fn add_message(db: &Surreal<Client>, chat: RecordId, sender: Sender, text: &str) -> surrealdb::Result<Record> {
     let msg = ChatMessage {
         chat,
         sender,
         text: text.to_string(),
         created_at: Utc::now().to_rfc3339(),
     };
-    let record: Option<Record>  = db.create("message").content(msg).await.unwrap();
-                      
-    record
+    db.create("message").content(msg)
+        .await?
+        .ok_or_else(|| Error::Db(Db::Thrown("Expected a record but got None".to_string())))
 }
 
 // ================== FETCH FUNCTIONS ==================
-
-
-
-pub async fn fetch_user_chats(db: &Surreal<Client>, user: Thing) -> Vec<Chat> {
-    let chats: Vec<Chat> = db
-        .query("SELECT * FROM chat WHERE owner = $user ORDER BY created_at ASC")
-        .bind(("user", user))
-        .await
-        .unwrap()
-        .take(0)
-        .unwrap();
-        
-        chats
+#[allow(dead_code)]
+pub async fn fetch_user(db: &Surreal<Client>, username: &str,) -> surrealdb::Result<Record> {
+    db.select(("user", username))
+        .await?
+        .ok_or_else(|| Error::Db(Db::Thrown(format!("User '{}' not found", username))))
 }
 
-pub async fn fetch_messages(db: &Surreal<Client>, chat: Thing) -> Vec<ChatMessage> {
-    let messages: Vec<ChatMessage> = db
+#[allow(dead_code)]
+pub async fn fetch_user_chats(db: &Surreal<Client>, user: Thing) -> surrealdb::Result<Vec<Chat>> {
+    db
+        .query("SELECT * FROM chat WHERE owner = $user ORDER BY created_at ASC")
+        .bind(("user", user))
+        .await?
+        .take(0)
+}
+
+#[allow(dead_code)]
+pub async fn fetch_messages(db: &Surreal<Client>, chat: Thing) -> surrealdb::Result<Vec<ChatMessage>> {
+    db
         .query("SELECT * FROM message WHERE chat = $chat ORDER BY created_at ASC")
         .bind(("chat", chat))
-        .await
-        .unwrap()
+        .await?
         .take(0)
-        .unwrap();
-        
-        messages
 }
