@@ -3,13 +3,11 @@ use rocket::serde::json::Json;
 use reqwest::Client;
 use std::time::Duration;
 use tokio::time::sleep;
-use surrealdb::Surreal;
-
 // Module imports
 use crate::db_functions::{Database, 
                           add_message,
                           create_chat,
-                          create_user
+                          ensure_user
 };
 use crate::types::{ HttpRequest, 
                     HttpResponse,
@@ -25,27 +23,11 @@ use crate::types::{ HttpRequest,
 pub async fn api_req(chat: Json<HttpRequest>) -> Json<HttpResponse> {
 
     // 1️⃣ Connect to SurrealDB
-    let db =    Database::init("127.0.0.1:8001", "root", "root", "test", "chat_db").await;
-
-
-async fn setup_mock_user_chat(db: &Surreal<surrealdb::engine::remote::ws::Client>) -> Record {
+    let db = Database::init("127.0.0.1:8001", "root", "root", "test", "chat_db").await;
     // Create a mock user
-    let user_record = match db.select(("user", "alice")).await {
-        Ok(Some(user)) => user,
-        Ok(None) => create_user(db, "alice", "Alice").await.unwrap(),
-        Err(_) => panic!("rip"),
-   };
-
+    let user_record = ensure_user(&db.client, "alice", "Alice").await.unwrap();
     // Create a chat for that user
-    let chat_record:Record= create_chat(db, "Rikka Chat", user_record.id.clone()).await.unwrap();
-
-    chat_record 
-}
-
-
-    // 2️⃣ Setup mock user/chat (in real app, use logged-in user)
-    let chat_rec = setup_mock_user_chat(&db.client).await;
-
+    let chat_rec:Record= create_chat(&db.client, "Rikka Chat", user_record.id.clone()).await.unwrap();
     // 3️⃣ Add user message to DB
     let _user_msg_id = add_message(&db.client, chat_rec.id.clone(), Sender::User, &chat.text).await.unwrap();
 
@@ -183,15 +165,13 @@ async fn setup_mock_user_chat(db: &Surreal<surrealdb::engine::remote::ws::Client
                         
                         // reply in DB
                         let _ai_msg_id = {
-                            add_message(&db.client, chat_rec.id.
-                                clone(), Sender::AI, &text).await.unwrap()                        };
+                            add_message(&db.client, chat_rec.id.clone(), Sender::AI, &text).await.unwrap()};
                         return Json(HttpResponse {
                             text: text.clone(),
                         });
                     }
                 }
             }
-
             break;
         } 
 

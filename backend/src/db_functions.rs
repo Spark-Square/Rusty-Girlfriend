@@ -1,5 +1,5 @@
 use surrealdb::{Surreal,
-                engine::remote::ws,
+                engine::remote::ws::{Ws,Client},
                 opt::auth,
                 sql::Thing,RecordId};
 use chrono::Utc;
@@ -11,7 +11,7 @@ use crate::types::{Record,
 
 #[allow(dead_code)]
 pub struct  Database {
-    pub client: Surreal<ws::Client>,
+    pub client: Surreal<Client>,
     pub ip: String,
     pub username: String,
     pub password: String,
@@ -34,7 +34,7 @@ impl Database {
         let database = database.into();
 
         // Connect
-        let client = Surreal::new::<ws::Ws>(&ip).await.unwrap();
+        let client = Surreal::new::<Ws>(&ip).await.unwrap();
 
         // Sign in
         client.signin(auth::Root {
@@ -57,7 +57,7 @@ impl Database {
 }
 
 // ================== CREATE FUNCTIONS ==================
-pub async fn create_user(db: &Surreal<surrealdb::engine::remote::ws::Client>, username: &str, name: &str) -> Option<Record> {
+pub async fn create_user(db: &Surreal<Client>, username: &str, name: &str) -> Option<Record> {
     let user = User {
         username: username.to_string(),
         name: name.to_string(),
@@ -67,7 +67,21 @@ pub async fn create_user(db: &Surreal<surrealdb::engine::remote::ws::Client>, us
     record
 }
 
-pub async fn create_chat(db: &Surreal<surrealdb::engine::remote::ws::Client>, title: &str, owner: RecordId) -> Option<Record> {
+pub async fn ensure_user(
+    db: &Surreal<Client>,
+    username: &str,
+    name: &str,
+) -> Option<Record> {
+    // Try to select the record by its ID
+    if let Ok(Some(existing)) = db.select(("user", username)).await {
+        return existing;
+    }
+
+    // If not found, create it
+    create_user(db, username, name).await
+}
+
+pub async fn create_chat(db: &Surreal<Client>, title: &str, owner: RecordId) -> Option<Record> {
     let chat = Chat {
         title: title.to_string(),
         owner,
@@ -83,7 +97,7 @@ pub async fn create_chat(db: &Surreal<surrealdb::engine::remote::ws::Client>, ti
     }
 }
 
-pub async fn add_message(db: &Surreal<surrealdb::engine::remote::ws::Client>, chat: RecordId, sender: Sender, text: &str) -> Option<Record> {
+pub async fn add_message(db: &Surreal<Client>, chat: RecordId, sender: Sender, text: &str) -> Option<Record> {
     let msg = ChatMessage {
         chat,
         sender,
@@ -96,21 +110,10 @@ pub async fn add_message(db: &Surreal<surrealdb::engine::remote::ws::Client>, ch
 }
 
 // ================== FETCH FUNCTIONS ==================
-#[allow(dead_code)]
-pub async fn fetch_messages(db: &Surreal<surrealdb::engine::remote::ws::Client>, chat: Thing) -> Vec<ChatMessage> {
-    let messages: Vec<ChatMessage> = db
-        .query("SELECT * FROM message WHERE chat = $chat ORDER BY created_at ASC")
-        .bind(("chat", chat))
-        .await
-        .unwrap()
-        .take(0)
-        .unwrap();
-        
-        messages
-}
 
-#[allow(dead_code)]
-pub async fn fetch_user_chats(db: &Surreal<surrealdb::engine::remote::ws::Client>, user: Thing) -> Vec<Chat> {
+
+
+pub async fn fetch_user_chats(db: &Surreal<Client>, user: Thing) -> Vec<Chat> {
     let chats: Vec<Chat> = db
         .query("SELECT * FROM chat WHERE owner = $user ORDER BY created_at ASC")
         .bind(("user", user))
@@ -120,4 +123,16 @@ pub async fn fetch_user_chats(db: &Surreal<surrealdb::engine::remote::ws::Client
         .unwrap();
         
         chats
+}
+
+pub async fn fetch_messages(db: &Surreal<Client>, chat: Thing) -> Vec<ChatMessage> {
+    let messages: Vec<ChatMessage> = db
+        .query("SELECT * FROM message WHERE chat = $chat ORDER BY created_at ASC")
+        .bind(("chat", chat))
+        .await
+        .unwrap()
+        .take(0)
+        .unwrap();
+        
+        messages
 }
