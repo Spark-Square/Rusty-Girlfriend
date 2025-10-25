@@ -2,15 +2,17 @@ use yew::prelude::*;
 
 #[derive(Properties, PartialEq)]
 pub struct InputBarProperties{
-		pub input: UseStateHandle<String>,
-    	pub on_send: Callback<()>  
+    	pub on_send: Callback<std::string::String>  
 }
 
 #[function_component(InputBar)]
 pub fn input_bar (props: &InputBarProperties) -> Html {
 
+	let input = use_state(|| String::new());
+
+
     let oninput = {
-		let input: UseStateHandle<String> = props.input.clone();
+		let input: UseStateHandle<String> = input.clone();
 		Callback::from(move |e: InputEvent| {
 			let input_elem = e.target_dyn_into::<web_sys::HtmlTextAreaElement>().unwrap();
 			input.set(input_elem.value());
@@ -18,14 +20,17 @@ pub fn input_bar (props: &InputBarProperties) -> Html {
 	};
 	let on_send_click = {
 		let on_send = props.on_send.clone();
+		let input: UseStateHandle<String> = input.clone();
 		Callback::from(move |_| {
-			on_send.emit(());
+			
+			on_send.emit((*input).clone());
+			input.set(String::new());
 		})
 	};
 	// Enter to send message
 	let onkeypress: Callback<KeyboardEvent> = {
 		let on_send = props.on_send.clone();
-		let input: UseStateHandle<String> = props.input.clone();
+		let input: UseStateHandle<String> = input.clone();
 
 		Callback::from(move |event: KeyboardEvent| {
 			if event.key() == "Enter" {
@@ -43,7 +48,8 @@ pub fn input_bar (props: &InputBarProperties) -> Html {
 					}
 				} else {  // Enter -> send message
 					event.prevent_default();
-					on_send.emit(());
+					on_send.emit((*input).clone());
+    				input.set(String::new());
 				}
 			}
 		})
@@ -55,7 +61,7 @@ pub fn input_bar (props: &InputBarProperties) -> Html {
 				{oninput}
 				{onkeypress}
 				type="text"
-				value={(*props.input).clone()}
+				value={(*input).clone()}
 				placeholder="Aa"
 				class= "chat-input"
 			/>

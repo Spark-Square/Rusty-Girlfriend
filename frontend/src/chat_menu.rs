@@ -8,7 +8,7 @@ use crate::http_req::get_user_chats;
 #[derive(Properties, PartialEq)]
 pub struct ChatMenuProps {
     pub user_id: String,
-    pub on_select_chat: Callback<Chat>,
+    pub selected_chat: UseStateHandle<Option<Chat>>,
 }
 
 #[function_component(ChatMenu)]
@@ -20,7 +20,7 @@ pub fn chat_menu(props: &ChatMenuProps) -> Html {
     let user_id = props.user_id.clone();
     
     // Callback gotten from parent and to be emitted to when a chat is selected
-    let on_select_chat = props.on_select_chat.clone();
+    let selected_chat = props.selected_chat.clone();
 
 
 //______________________________________________________________________________________________________________________
@@ -70,11 +70,11 @@ pub fn chat_menu(props: &ChatMenuProps) -> Html {
                             // Iterating through each chat in the use_state vectors of chats
                             {
                                 for (*chats).iter().cloned().map(move |chat| {
-                                    let on_select_chat = on_select_chat.clone();
-                                    let chat_for_click = chat.clone();
+                                    let selected_chat = selected_chat.clone();
+                                    let chat_clicked = chat.clone();
 
                                     //Callbacks mouse clicking, mouse entering and leaving into each chat title
-                                    let onclick={Callback::from(move |_| on_select_chat.emit(chat_for_click.clone()))};
+                                    let onclick={Callback::from(move |_| selected_chat.set(Some(chat_clicked.clone())))};
                                     let onmouseenter={Callback::from(move |e: MouseEvent| {
                                         if let Some(el) = e.target_dyn_into::<HtmlElement>() {
                                             let _ = el.style().set_property("background", "#222");

@@ -8,7 +8,7 @@ use crate::{state_hooks::{ChatHistory,
 					Chat}};
 
 
-pub fn send_message (input: &UseStateHandle<String>, chat_history: &UseReducerHandle<ChatHistory>) {
+pub fn send_message (input: String, chat_history: &UseReducerHandle<ChatHistory>) {
         
 		let msg = input.clone();
 
@@ -22,7 +22,6 @@ pub fn send_message (input: &UseStateHandle<String>, chat_history: &UseReducerHa
         		text: msg.to_string(),
     	});
     	// clear input
-    	input.set(String::new());
 
 
     	// Move clones into the async task
